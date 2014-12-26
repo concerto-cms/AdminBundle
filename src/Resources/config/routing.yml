@@ -1,0 +1,15 @@
+concerto_cms_admin_dashboard:
+    path:     /
+    defaults: { _controller: ConcertoCmsAdminBundle:Default:index }
+
+concerto_cms_admin_login:
+    path:     /account/login
+    defaults: { _controller: ConcertoCmsAdminBundle:Account:login }
+
+concerto_cms_admin_pages:
+    path:     /pages
+    defaults: { _controller: ConcertoCmsAdminBundle:Pages:index }
+
+concerto_cms_admin_navigation:
+    path:     /navigation
+    defaults: { _controller: ConcertoCmsAdminBundle:Navigation:index }

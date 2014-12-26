@@ -1,0 +1,13 @@
+<div class="page-header">
+    <div class="container">
+        <h1>{% block title %}{% endblock %}</h1>
+
+        {% block breadcrumb %}{% endblock %}
+        {% if block('buttons') is not empty %}
+        <div class="btn-group pull-right" role="group">
+            {% block buttons %}{% endblock %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% block body %}{% endblock %}

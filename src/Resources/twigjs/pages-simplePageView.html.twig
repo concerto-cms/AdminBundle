@@ -1,0 +1,19 @@
+{% extends 'layout.html.twig' %}
+{% block title %}Pages <small>{{ model.get('title') }}</small>{% endblock %}
+{% block breadcrumb %}<a href="#list/{{ model.getLanguage() }}">&lt; Back to overview</a>{% endblock %}
+{% block body %}
+<div class="container">
+    <div class="form-group">
+        <label for="frmSimplePage_title">Title</label>
+        <input type="text" name="title" class="form-control" id="frmSimplePage_title" placeholder="Page title">
+    </div>
+    <div class="form-group">
+        <label for="frmSimplePage_meta_description">Meta description</label>
+        <input type="text" name="meta_description" class="form-control" id="frmSimplePage_meta_description" placeholder="Meta description">
+    </div>
+</div>
+    <hr />
+    <div class="container">
+        <button type="submit" class="btn btn-success btn-lg pull-right"><i class="glyphicon glyphicon-ok"></i> Save</button>
+    </div>
+{% endblock %}

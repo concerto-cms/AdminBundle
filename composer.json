@@ -1,0 +1,21 @@
+{
+    "name": "concerto-cms/admin-bundle",
+    "description": "Backend GUI for the Concerto CMS software",
+    "authors": [
+        {
+            "name": "Mathieu Maes",
+            "email": "mathieu@webberig.be"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "ConcertoCms\\AdminBundle\\": "src/"
+        }
+    },
+    "require": {
+        "friendsofsymfony/jsrouting-bundle": "1.5.3",
+        "liip/imagine-bundle": "~0.12",
+        "helios-ag/fm-elfinder-bundle": "1.x",
+        "concerto-cms/core-bundle": "dev-refactor"
+    }
+}

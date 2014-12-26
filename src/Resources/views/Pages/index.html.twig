@@ -1,0 +1,30 @@
+{% extends 'ConcertoCmsAdminBundle::base.html.twig' %}
+{% block body %}
+    {% include '@ConcertoCmsAdmin/_Partials/header.html.twig' %}
+
+
+    <div id="pages-container"></div>
+{% endblock %}
+{% block javascript %}
+    {% javascripts
+        '@ConcertoCmsAdminBundle/Resources/js/Model/Page.js'
+        '@ConcertoCmsAdminBundle/Resources/js/Model/Language.js'
+        '@ConcertoCmsAdminBundle/Resources/js/Collection/Pages.js'
+        '@ConcertoCmsAdminBundle/Resources/js/Collection/Languages.js'
+        '@ConcertoCmsAdminBundle/Resources/js/Pages/*.js'
+        'js/templates.admin.js'
+    %}
+    <script src="{{ asset_url }}"></script>
+    {% endjavascripts %}
+    <script>
+        Pages.Pagetypes.addType("simplepage", {
+            "title": "Simple page",
+            "description": "The most basic building block of any website",
+            "view": Pages.SimplePageView
+        });
+        controller = new Pages.Controller({
+            el: document.getElementById("pages-container")
+        });
+    </script>
+
+{% endblock %}
