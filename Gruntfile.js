@@ -8,11 +8,10 @@ module.exports = function(grunt) {
         // Metadata.
         folders: {
             components: 'bower_components',
-            target: 'web'
+            target: 'src/Resources/public',
+            src: 'src/Resources'
         },
-        bundle: {
-            admin:       'src/ConcertoCms/AdminBundle/Resources'
-        },
+        
         // Task configuration.
         concat: {
             base: {
@@ -36,39 +35,11 @@ module.exports = function(grunt) {
                 options: {
                     paths: [
                         '<%= folders.components %>',
-                        '<%= bundle.admin %>/less'
+                        '<%= folders.src %>/less'
                     ]
                 },
                 files: {
-                    '<%= folders.target %>/css/app.css': "<%= bundle.admin %>/less/css-app.less"
-                }
-            }
-        },
-        watch: {
-            less: {
-                files: '<%= bundle.admin %>/less/**/*.less',
-                tasks: ['less:app']
-            },
-            js: {
-                files: '<%= bundle.admin %>/js/**/*.js',
-                tasks: ['js']
-            },
-            twig: {
-                files: '<%= bundle.admin %>/twigjs/**/*.twig',
-                tasks: ['twig:admin']
-            }
-        },
-        twig: {
-            options: {
-                amd_wrapper: false,
-                each_template: '{{ variable }}["{{ filepath }}"] = Twig.twig({ allowInlineIncludes: true, id: "{{ filepath }}", data: {{ compiled }} });',
-                template_key: path.basename
-            },
-            admin: {
-                files: {
-                    '<%= folders.target%>/js/templates.admin.js' : [
-                        '<%= bundle.admin %>/twigjs/*.twig'
-                    ]
+                    '<%= folders.target %>/css/app.css': "<%= folders.src %>/less/css-app.less"
                 }
             }
         },
@@ -83,6 +54,30 @@ module.exports = function(grunt) {
                         cwd: '<%=folders.components%>/bootstrap/dist/fonts/'
                     }
                 ]
+            }
+        },
+        twig: {
+            options: {
+                amd_wrapper: false,
+                each_template: '{{ variable }}["{{ filepath }}"] = Twig.twig({ allowInlineIncludes: true, id: "{{ filepath }}", data: {{ compiled }} });',
+                template_key: path.basename
+            },
+            admin: {
+                files: {
+                    '<%= folders.target%>/js/templates.admin.js' : [
+                        '<%= folders.src %>/twigjs/*.twig'
+                    ]
+                }
+            }
+        },
+        watch: {
+            less: {
+                files: '<%= folders.src %>/less/**/*.less',
+                tasks: ['less']
+            },
+            twig: {
+                files: '<%= folders.src %>/twigjs/**/*.twig',
+                tasks: ['twig:admin']
             }
         }
     });
@@ -100,5 +95,4 @@ module.exports = function(grunt) {
 
     // Build & Deploy
     grunt.registerTask('default', ['copy', 'twig', 'js', 'css']);
-    grunt.registerTask('deploy', ['default', 'uglify']);
 };
