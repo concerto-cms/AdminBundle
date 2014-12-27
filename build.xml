@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="concertoCmsAdminBundle" default="build">
+    <target name="build">
+        <echo msg="Installing Bower &amp; Grunt..." />
+        <exec command="npm install bower grunt-cli -g"
+              checkreturn="true"
+                />
+        <echo msg="Running NPM..." />
+        <exec command="npm install"
+              checkreturn="true"
+                />
+        <echo msg="Running Bower..." />
+        <exec command="bower install"
+              checkreturn="true"
+                />
+        <echo msg="Running Grunt..." />
+        <exec command="grunt"
+              checkreturn="true"
+                />
+        <echo msg="Build completed!" />
+    </target>
+
+    <target name="install">
+        <echo msg="Running composer..." />
+        <exec
+                command="composer install"
+                checkreturn="true"
+                />
+    </target>
+</project>

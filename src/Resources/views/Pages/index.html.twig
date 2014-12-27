@@ -12,11 +12,22 @@
         '@ConcertoCmsAdminBundle/Resources/js/Collection/Pages.js'
         '@ConcertoCmsAdminBundle/Resources/js/Collection/Languages.js'
         '@ConcertoCmsAdminBundle/Resources/js/Pages/*.js'
-        'js/templates.admin.js'
+        '@ConcertoCmsAdminBundle/Resources/public/js/templates.admin.js'
     %}
+    <script src="{{ asset('bundles/concertocmscore/ckeditor/ckeditor.js') }}"></script>
+    <script src="{{ asset('bundles/concertocmscore/ckeditor/adapters/jquery.js') }}"></script>
+
     <script src="{{ asset_url }}"></script>
     {% endjavascripts %}
     <script>
+        _.extend(CKEDITOR.config, {
+            language: 'en',
+            allowedContent: true,
+            customConfig: '',
+            autoUpdateElement: '',
+            filebrowserBrowseUrl: {{ path('elfinder')|json_encode|raw }}
+        });
+
         Pages.Pagetypes.addType("simplepage", {
             "title": "Simple page",
             "description": "The most basic building block of any website",

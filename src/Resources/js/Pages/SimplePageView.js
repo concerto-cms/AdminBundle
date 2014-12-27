@@ -7,8 +7,17 @@ Pages.SimplePageView = Backbone.View.extend({
         _.extend(this, options);
     },
     render: function() {
-        var content = window.JST["pages-simplePageView.html.twig"].render(this);
+        var content = window.JST["pages-simplePageView.html.twig"].render(this),
+            editor;
         this.$el.html(content);
+
+        editor = this.$("[name=content]").ckeditor({
+            customConfig: ''
+        }).data("ckeditorInstance");
+        editor.on( 'change', _.bind(function(e) {
+            this.$("[name=content]").trigger("change");
+        }, this));
+
         this.stickit();
     },
     events: {
@@ -25,6 +34,6 @@ Pages.SimplePageView = Backbone.View.extend({
     },
     save: function() {
         this.originalModel.set(this.model.attributes);
-        this.originalModel.trigger("save");
+        this.trigger("save");
     }
 });

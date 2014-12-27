@@ -43,16 +43,22 @@ _.extend(Pages.Controller.prototype, {
         var page = this.pages.get(path),
             view = Pages.Pagetypes.createView(page);
 
+        this.listenTo(view, "save", function() {
+            page.save();
+            this.router.navigate("list/" + page.getLanguage(), {trigger: true});
+        });
         this.setView(view);
+
     },
     setView: function(view) {
         if (this.view) {
+            this.stopListening(this.view);
             this.view.remove();
         }
         this.view = view;
         $(this.el).html("");
-        view.render();
         view.$el.appendTo(this.el);
+        view.render();
     }
 });
 

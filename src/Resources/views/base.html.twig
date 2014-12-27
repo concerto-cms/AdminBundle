@@ -3,14 +3,18 @@
 <head>
     <meta charset="UTF-8" />
     <title>{% block title %}Concerto CMS{% endblock %}</title>
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}" />
+    <link rel="stylesheet" href="{{ asset('bundles/concertocmsadmin/css/app.css') }}" />
     {% block stylesheets %}{% endblock %}
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}" />
 </head>
 <body>
 {% block body %}{% endblock %}
-<script src="{{ asset('js/base.js') }}"></script>
-<script src="{{ asset('bundles/fosjsrouting/js/router.js') }}"></script>
+{% javascripts
+'@ConcertoCmsAdminBundle/Resources/public/js/base.js'
+'bundles/fosjsrouting/js/router.js'
+%}
+<script src="{{ asset_url }}"></script>
+{% endjavascripts %}
 <script src="{{ path('fos_js_routing_js', {"callback": "fos.Router.setData"}) }}"></script>
 
 {% block javascript %}{% endblock %}

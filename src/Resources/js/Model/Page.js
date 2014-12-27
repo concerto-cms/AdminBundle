@@ -1,14 +1,22 @@
 var Model = Model || {};
 Model.Page = Backbone.Model.extend({
-    constructor: function(attrs, options) {
+    set: function(attrs, options) {
         if (typeof attrs == "object" && attrs.id) {
-            attrs.id = attrs.id.replace("/cms/pages/", "");
+            arguments[0].id = attrs.id.replace("/cms/pages/", "");
         }
-        Backbone.Model.apply(this, arguments);
+        Backbone.Model.prototype.set.apply(this, arguments);
     },
+
     getLanguage: function() {
         var urlParts = this.id.split("/");
         return _.first(urlParts);
+    },
+    url: function() {
+        if (this.isNew()) {
+            return Routing.generate('concerto_cms_core_pages_rest');
+        } else {
+            return Routing.generate('concerto_cms_core_pages_rest_get', {path: this.id});
+        }
     }
 
 });
