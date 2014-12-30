@@ -1,7 +1,7 @@
 var Pages = Pages || {};
 Pages.Controller = function Pages_Controller(options) {
     _.extend(this, options);
-    $.when(this.loadLanguages(), this.loadPages())
+    $.when(this.loadLanguages(), this.loadMenus())
     .done(_.bind(function() {
             this.router = new Pages.Router();
             this.listenTo(this.router, "route:index", this.indexAction);

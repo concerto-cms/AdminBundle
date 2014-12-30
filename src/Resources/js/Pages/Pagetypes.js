@@ -1,6 +1,6 @@
 var Pages = Pages || {};
 Pages.Pagetypes = {
-    types: new Backbone.Collection({
+    types: new Backbone.Collection([], {
         model: Backbone.Model
     }),
     addType: function(name, attrs) {

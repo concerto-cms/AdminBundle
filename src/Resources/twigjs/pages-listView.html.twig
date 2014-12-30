@@ -1,21 +1,17 @@
-{% extends 'layout.html.twig' %}
+{% extends 'layout-page.html.twig' %}
 {% block title %}Pages <small>Overview</small>{% endblock %}
 {% block buttons %}
     <button type="button" class="btn btn-info btn-sm add-page">Add a page</button>
 {% endblock %}
 {% block body %}
 <div class="container">
-    <div class="row">
-        <div class="col-sm-6 col-sm-offset-3">
-            <div class="list-group">
-                {% for page in pages %}
-                    <a href="#edit/{{ page.id }}" class="list-group-item">
-                        <h4 class="list-group-item-heading">{{ page.get('title') }}</h4>
-                        <p class="list-group-item-text">{{ page.id }}</p>
-                    </a>
-                {% endfor %}
-            </div>
-        </div>
+    <div class="list-group">
+        {% for page in pages %}
+            <a href="#edit/{{ page.id }}" class="list-group-item">
+                <h4 class="list-group-item-heading">{{ page.get('title') }}</h4>
+                <p class="list-group-item-text">{{ page.id }}</p>
+            </a>
+        {% endfor %}
     </div>
 </div>
 {% endblock %}

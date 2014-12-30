@@ -1,0 +1,33 @@
+{% extends 'layout-modal.html.twig' %}
+{% block title %}Add a page{% endblock %}
+{% block body %}
+    <div class="form-group">
+        <label for="frmNewPage_title">Title</label>
+        <input type="text" class="form-control" id="frmNewPage_title" placeholder="Page title" name="title" required />
+    </div>
+    <div class="form-group">
+        <label for="frmNewPage_slug">Url</label>
+        <select class="form-control" name="parent">
+            {% for page in pages %}
+            <option>{{ page.get('id') }}</option>
+            {% endfor %}
+        </select> / <input type="text" class="form-control" id="frmNewPage_slug" placeholder="Page title" name="slug" required />
+    </div>
+    {% if types|length > 1 %}
+    <div class="form-group">
+        <label>Page type</label>
+        <div class="list-group page-types">
+            {% for type in types %}
+                <a href="#" class="list-group-item" data-type="{{ type.get('id') }}">
+                    <h4 class="list-group-item-heading">{{ type.get('title') }}</h4>
+                    <p class="list-group-item-text">{{ type.get('description') }}</p>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+{% endblock %}
+{% block footer %}
+    <button type="submit" class="btn btn-lg btn-success">Create</button>
+{% endblock %}
