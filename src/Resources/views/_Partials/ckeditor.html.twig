@@ -1,0 +1,11 @@
+<script src="{{ asset('bundles/concertocmsadmin/ckeditor/ckeditor.js') }}"></script>
+<script src="{{ asset('bundles/concertocmsadmin/ckeditor/adapters/jquery.js') }}"></script>
+<script>
+    _.extend(CKEDITOR.config, {
+        language: 'en',
+        allowedContent: true,
+        customConfig: '',
+        autoUpdateElement: '',
+        filebrowserBrowseUrl: {{ path('elfinder')|json_encode|raw }}
+    });
+</script>

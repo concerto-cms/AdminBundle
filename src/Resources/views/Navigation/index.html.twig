@@ -3,39 +3,25 @@
     {% include '@ConcertoCmsAdmin/_Partials/header.html.twig' %}
 
 
-    <div id="pages-container"></div>
+    <div id="navigation-container"></div>
 {% endblock %}
 {% block javascript %}
     {% javascripts
         '@ConcertoCmsAdminBundle/Resources/js/Model/Page.js'
         '@ConcertoCmsAdminBundle/Resources/js/Model/Language.js'
+        '@ConcertoCmsAdminBundle/Resources/js/Model/Menu.js'
         '@ConcertoCmsAdminBundle/Resources/js/Collection/Pages.js'
         '@ConcertoCmsAdminBundle/Resources/js/Collection/Languages.js'
-        '@ConcertoCmsAdminBundle/Resources/js/Pages/*.js'
+        '@ConcertoCmsAdminBundle/Resources/js/Collection/Menus.js'
+        '@ConcertoCmsAdminBundle/Resources/js/Navigation/*.js'
         '@ConcertoCmsAdminBundle/Resources/public/js/templates.admin.js'
     %}
-    <script src="{{ asset_url }}"></script>
+        <script src="{{ asset_url }}"></script>
     {% endjavascripts %}
-    <script src="{{ asset('bundles/concertocmscore/ckeditor/ckeditor.js') }}"></script>
-    <script src="{{ asset('bundles/concertocmscore/ckeditor/adapters/jquery.js') }}"></script>
+
     <script>
-        _.extend(CKEDITOR.config, {
-            language: 'en',
-            allowedContent: true,
-            customConfig: '',
-            autoUpdateElement: '',
-            filebrowserBrowseUrl: {{ path('elfinder')|json_encode|raw }}
-        });
-
-        Pages.Pagetypes.addType("simplepage", {
-            "title": "Simple page",
-            "description": "The most basic building block of any website",
-            "view": Pages.SimplePageView
-        });
-
         controller = new Pages.Controller({
-            el: document.getElementById("pages-container")
+            el: document.getElementById("navigation-container")
         });
     </script>
-
 {% endblock %}

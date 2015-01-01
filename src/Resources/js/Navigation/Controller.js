@@ -1,12 +1,11 @@
 var Pages = Pages || {};
 Pages.Controller = function Pages_Controller(options) {
     _.extend(this, options);
-    $.when(this.loadLanguages(), this.loadMenus())
+    $.when(this.loadLanguages(), this.loadMenus(), this.loadPages())
     .done(_.bind(function() {
-            this.router = new Pages.Router();
+            this.router = new Navigation.Router();
             this.listenTo(this.router, "route:index", this.indexAction);
             this.listenTo(this.router, "route:list", this.listAction);
-            this.listenTo(this.router, "route:edit", this.editAction);
             Backbone.history.start();
     }, this));
 
@@ -29,26 +28,27 @@ _.extend(Pages.Controller.prototype, {
             })
 
     },
-    indexAction: function() {
-        this.router.navigate("list/" + this.languages.first().id, {trigger: true});
+    loadMenus: function() {
+        var that = this;
+        return $.getJSON(Routing.generate("concerto_cms_core_navigation_rest"))
+            .done(function(data) {
+                that.menus = new Collection.Menus(data);
+            })
+
     },
-    listAction: function(lang) {
-        var view = new Pages.ListView({
-                collection: this.pages,
-                language: lang
+    indexAction: function() {
+        var menu = this.menus.first().get('name'),
+            language = this.languages.first().id;
+        this.router.navigate([menu, language].join('/'), {trigger: true});
+    },
+    listAction: function(menu, lang) {
+        var view = new Navigation.ListView({
+                collection: this.menus,
+                pages: this.pages,
+                language: lang,
+                menu: menu
             });
         this.setView(view);
-    },
-    editAction: function(path) {
-        var page = this.pages.get(path),
-            view = Pages.Pagetypes.createView(page);
-
-        this.listenTo(view, "save", function() {
-            page.save();
-            this.router.navigate("list/" + page.getLanguage(), {trigger: true});
-        });
-        this.setView(view);
-
     },
     setView: function(view) {
         if (this.view) {
