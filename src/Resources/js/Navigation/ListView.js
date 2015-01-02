@@ -21,25 +21,47 @@ Navigation.ListView = Backbone.View.extend({
             view;
         view = new Navigation.EditView({
             model: model,
-            pages: this.pages
+            pages: this.pages.getByLanguage(this.language)
         });
         this.setActive(e.currentTarget);
         this.setView(view);
-
+        this.listenTo(view, "save", _.bind(function() {
+            var that = this;
+            model.save().done(function() {
+                that.render();
+            });
+        }, this));
     },
     addMenu: function(e) {
-        var parent = $(el.currentTarget).data("parent"),
+        var parent = $(e.currentTarget).data("parent"),
             model,
-            view;
+            view,
+            that = this;
         model = new Model.Menu({
             parent: parent
         });
-        view = new Navigation.AddPage({
+        view = new Navigation.EditView({
             model: model,
-            pages: this.pages
+            pages: this.pages.getByLanguage(this.language)
         });
         this.setActive(e.currentTarget);
         this.setView(view);
+        this.listenTo(view, "save", _.bind(function() {
+            var collection = this.collection;
+            $.ajax({
+                type: 'POST',
+                url: Routing.generate('concerto_cms_core_navigation_rest', {path: parent}),
+                data: JSON.stringify (model.toJSON()),
+                contentType: "application/json",
+                dataType: 'json'
+            })
+                .done(function(data) {
+                    model.set(data);
+                    collection.add(model);
+                    that.render();
+                });
+
+        }, this));
     },
     setActive: function(el) {
         this.$('.list-group a.list-group-item.active').removeClass("active");

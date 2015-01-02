@@ -1,5 +1,5 @@
-var Pages = Pages || {};
-Pages.Controller = function Pages_Controller(options) {
+var Navigation = Navigation || {};
+Navigation.Controller = function Navigation_Controller(options) {
     _.extend(this, options);
     $.when(this.loadLanguages(), this.loadMenus(), this.loadPages())
     .done(_.bind(function() {
@@ -11,8 +11,8 @@ Pages.Controller = function Pages_Controller(options) {
 
 
 };
-_.extend(Pages.Controller.prototype, Backbone.Events);
-_.extend(Pages.Controller.prototype, {
+_.extend(Navigation.Controller.prototype, Backbone.Events);
+_.extend(Navigation.Controller.prototype, {
     loadLanguages: function() {
         var that = this;
         return $.getJSON(Routing.generate("concerto_cms_core_languages_rest"))

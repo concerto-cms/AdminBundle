@@ -10,7 +10,7 @@ Model.Menu = Backbone.Model.extend({
     },
 
     url: function() {
-        return Routing.generate('concerto_cms_core_navigation_rest_get', {path: this.id});
+        return Routing.generate('concerto_cms_core_navigation_rest', {path: this.id});
     },
     getChildren: function() {
         if (this.collection) {
