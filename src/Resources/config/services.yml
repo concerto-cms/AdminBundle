@@ -1,4 +1,13 @@
 services:
-#    concerto_cms_admin.example:
-#        class: ConcertoCms\AdminBundle\Example
-#        arguments: [@service_id, "plain_value", %parameter%]
+    concerto_cms_admin.menu_builder:
+        class: ConcertoCms\AdminBundle\Menu\MainBuilder
+        arguments: ["@event_dispatcher", "@knp_menu.factory"]
+
+    concerto_cms_admin.menu.main:
+        class: Knp\Menu\MenuItem # the service definition requires setting the class
+        factory_service: acme_main.menu_builder
+        factory_method: createMainMenu
+        arguments: ["@request"]
+        scope: request # needed as we have the request as a dependency here
+        tags:
+            - { name: knp_menu.menu, alias: main } # The alias is what is used to retrieve the menu
