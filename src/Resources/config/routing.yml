@@ -3,7 +3,7 @@ concerto_cms_admin_dashboard:
     defaults: { _controller: ConcertoCmsAdminBundle:Default:index }
 
 concerto_cms_admin_login:
-    path:     /account/login
+    path:     /Account/Login
     defaults: { _controller: ConcertoCmsAdminBundle:Account:login }
 
 concerto_cms_admin_pages:
@@ -13,3 +13,4 @@ concerto_cms_admin_pages:
 concerto_cms_admin_navigation:
     path:     /navigation
     defaults: { _controller: ConcertoCmsAdminBundle:Navigation:index }
+
