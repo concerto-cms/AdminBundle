@@ -17,11 +17,13 @@ Navigation.ListView = Backbone.View.extend({
     },
     editMenu: function(e) {
         var id = $(e.currentTarget).data("id"),
-            model = this.collection.get(id),
+            collection = this.collection,
+            model = collection.get(id),
             view;
         view = new Navigation.EditView({
             model: model,
-            pages: this.pages.getByLanguage(this.language)
+            pages: this.pages.getByLanguage(this.language),
+            listEl: e.currentTarget
         });
         this.setActive(e.currentTarget);
         this.setView(view);
@@ -31,6 +33,10 @@ Navigation.ListView = Backbone.View.extend({
                 that.render();
             });
         }, this));
+        this.listenTo(view, "delete", function() {
+            view.remove();
+            this.render();
+        });
     },
     addMenu: function(e) {
         var parent = $(e.currentTarget).data("parent"),
