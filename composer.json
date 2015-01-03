@@ -16,7 +16,7 @@
         "friendsofsymfony/jsrouting-bundle": "1.5.3",
         "liip/imagine-bundle": "~0.12",
         "helios-ag/fm-elfinder-bundle": "1.x",
-        "concerto-cms/core-bundle": "dev-refactor",
+        "concerto-cms/core-bundle": "~0.1",
         "knplabs/knp-menu-bundle": "~1.1"
     }
 }
