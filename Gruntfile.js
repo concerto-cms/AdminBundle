@@ -41,6 +41,17 @@ module.exports = function(grunt) {
                 files: {
                     '<%= folders.target %>/css/app.css': "<%= folders.src %>/less/css-app.less"
                 }
+            },
+            login: {
+                options: {
+                    paths: [
+                        '<%= folders.components %>',
+                        '<%= folders.src %>/less'
+                    ]
+                },
+                files: {
+                    '<%= folders.target %>/css/login.css': "<%= folders.src %>/less/css-login.less"
+                }
             }
         },
         copy:

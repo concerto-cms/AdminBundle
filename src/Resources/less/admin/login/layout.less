@@ -1,0 +1,40 @@
+html, body {
+  height: 100%;
+}
+body {
+  background-color: #f6f6f6;
+}
+#login-container {
+  background-color: white;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 55px 25px 0px;
+  min-height: 100%;
+
+  h1 {
+    margin: 5px 0 25px;
+  }
+}
+
+#login-bg {
+  display: none;
+}
+
+@media screen and (min-width: 769px) {
+  #login-container {
+    margin-right: 0;
+  }
+
+  #login-bg {
+    display: block;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 400px;
+    background-image: url('../images/bg.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center center;
+  }
+}
