@@ -8,7 +8,17 @@
     {% endstylesheets %}
 
     {% block stylesheets %}{% endblock %}
-    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}" />
+    {% set appleFormats = [57, 114, 72, 144, 60, 120, 76, 152, 180] %}
+    {% set favFormats = [192,160,96,16,32] %}
+
+    {% for format in appleFormats %}
+        <link rel="apple-touch-icon" sizes="{{ format }}x{{ format }}" href="{{ asset('bundles/concertocmsadmin/images/apple-touch-icon-' ~ format ~ 'x' ~ format ~ '.png') }}">
+    {% endfor %}
+    {% for format in favFormats %}
+        <link rel="icon" type="image/png" sizes="{{ format }}x{{ format }}" href="{{ asset('bundles/concertocmsadmin/images/favicon-' ~ format ~ 'x' ~ format ~ '.png') }}">
+    {% endfor %}
+    <meta name="msapplication-TileColor" content="#911146">
+    <meta name="msapplication-TileImage" content="{{ asset('bundles/concertocmsadmin/images/mstile-144x144.png') }}">
 </head>
 <body>
 {% block body %}{% endblock %}

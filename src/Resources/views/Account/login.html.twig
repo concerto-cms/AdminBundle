@@ -6,7 +6,7 @@
 {% endblock %}
 {% block body %}
     <div id="login-container">
-        <h1 class="text-center">Concerto CMS</h1>
+        <h1 class="text-center"><span class="sr-only">Concerto CMS</span><img src="{{ asset('bundles/concertocmsadmin/images/login-logo.png') }}" alt="Concerto CMS" /></h1>
         {% if error %}
             <div class="alert alert-danger">{{ error }}</div>
         {% endif %}
