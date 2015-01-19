@@ -18,8 +18,7 @@
         "liip/imagine-bundle": "~0.12",
         "helios-ag/fm-elfinder-bundle": "1.x",
         "concerto-cms/core-bundle": "~0.1",
-        "knplabs/knp-menu-bundle": "~1.1",
-        "appventus/assetic-injector-bundle": "dev-master"
+        "knplabs/knp-menu-bundle": "~1.1"
 
     },
     "licence": "GPL-2.0"

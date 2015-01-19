@@ -4,7 +4,7 @@
     <div id="pages-container"></div>
 {% endblock %}
 {% block javascript %}
-    {% javascripts injector="concerto-pages"
+    {% javascripts
         '@ConcertoCmsAdminBundle/Resources/js/Model/Page.js'
         '@ConcertoCmsAdminBundle/Resources/js/Model/Language.js'
         '@ConcertoCmsAdminBundle/Resources/js/Collection/Pages.js'
@@ -16,7 +16,8 @@
     {% endjavascripts %}
 
     {% include '@ConcertoCmsAdmin/_Partials/ckeditor.html.twig' %}
-    {% include '@ConcertoCmsAdmin/_Partials/pagetypes.html.twig' %}
+
+    {{ render(controller('ConcertoCmsAdminBundle:Pages:pagetypes')) }}
 
     <script>
         controller = new Pages.Controller({

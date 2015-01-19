@@ -10,4 +10,9 @@ class PagesController extends Controller
     {
         return $this->render('ConcertoCmsAdminBundle:Pages:index.html.twig');
     }
+
+    public function pagetypesAction()
+    {
+        return $this->render('ConcertoCmsAdminBundle:Pages:pagetypes.html.twig');
+    }
 }
