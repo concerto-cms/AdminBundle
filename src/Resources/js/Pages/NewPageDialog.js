@@ -43,11 +43,11 @@ Pages.NewPageDialog = Backbone.View.extend({
     },
     save: function() {
         var that = this,
-            model = this.model,
+            model = this.model.toJSON(),
             type = model.get('type'),
             parent = model.get('parent');
-        model.unset('type');
-        model.unset('parent');
+        delete model.type;
+        delete model.parent;
 
         window.dialogModel = model;
         $.ajax({
@@ -55,14 +55,14 @@ Pages.NewPageDialog = Backbone.View.extend({
             url: Routing.generate('concerto_cms_core_pages_rest_get', {path: parent}),
             data: JSON.stringify ({
                 type: type,
-                page: model.toJSON()
+                page: model
             }),
             contentType: "application/json",
             dataType: 'json'
         })
         .done(function(data) {
-            model.set(data);
-            that.trigger("save", model);
+            that.model.set(data);
+            that.trigger("save", that.model);
         });
 
 
