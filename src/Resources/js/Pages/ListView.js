@@ -6,8 +6,10 @@ Pages.ListView = Backbone.View.extend({
     render: function() {
         var pages = this.getPages(),
             content = window.JST["pages-listView.html.twig"].render({
-            pages: pages
-        });
+            pages: pages,
+            types: Pages.Pagetypes.types.pluck("id")
+
+            });
         this.$el.html(content);
     },
     events: {

@@ -44,8 +44,8 @@ Pages.NewPageDialog = Backbone.View.extend({
     save: function() {
         var that = this,
             model = this.model.toJSON(),
-            type = model.get('type'),
-            parent = model.get('parent');
+            type = model.type,
+            parent = model.parent;
         delete model.type;
         delete model.parent;
 
