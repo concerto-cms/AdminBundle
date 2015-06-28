@@ -23,6 +23,8 @@ module.exports = function(grunt) {
                     '<%= folders.components %>/bootstrap/js/alert.js',
                     '<%= folders.components %>/bootstrap/js/collapse.js',
                     '<%= folders.components %>/bootstrap/js/dropdown.js',
+                    '<%= folders.components %>/bootstrap/js/tab.js',
+
                     '<%= folders.components %>/bootstrap/js/modal.js',
                     '<%= folders.components %>/bootstrap-datepicker/dist/js/bootstrap-datepicker.js',
                     '<%= folders.components %>/twig.js/twig.js'
