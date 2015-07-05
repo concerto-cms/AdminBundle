@@ -24,10 +24,11 @@ module.exports = function(grunt) {
                     '<%= folders.components %>/bootstrap/js/collapse.js',
                     '<%= folders.components %>/bootstrap/js/dropdown.js',
                     '<%= folders.components %>/bootstrap/js/tab.js',
-
                     '<%= folders.components %>/bootstrap/js/modal.js',
                     '<%= folders.components %>/bootstrap-datepicker/dist/js/bootstrap-datepicker.js',
-                    '<%= folders.components %>/twig.js/twig.js'
+                    '<%= folders.components %>/twig.js/twig.js',
+                    '<%= folders.components %>/jquery-file-upload/js/vendor/jquery.ui.widget.js',
+                    '<%= folders.components %>/jquery-file-upload/js/jquery.fileupload.js'
                 ],
                 dest: '<%= folders.target %>/js/base.js',
                 nonull: true
