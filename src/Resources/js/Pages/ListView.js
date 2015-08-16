@@ -4,11 +4,13 @@ Pages.ListView = Backbone.View.extend({
         _.extend(this, options);
     },
     render: function() {
+        console.dir(this.languages.toJSON());
         var pages = this.getPages(),
             content = window.JST["pages-listView.html.twig"].render({
-            pages: pages,
-            types: Pages.Pagetypes.types.pluck("id")
-
+                pages: pages,
+                languages: this.languages.toJSON(),
+                lang: this.language,
+                types: Pages.Pagetypes.types.pluck("id")
             });
         this.$el.html(content);
     },

@@ -45,6 +45,7 @@ _.extend(Navigation.Controller.prototype, {
         var view = new Navigation.ListView({
                 collection: this.menus,
                 pages: this.pages,
+                languages: this.languages,
                 language: lang,
                 menu: menu
             });

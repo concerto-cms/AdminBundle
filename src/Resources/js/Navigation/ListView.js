@@ -7,6 +7,8 @@ Navigation.ListView = Backbone.View.extend({
         var menu = this.collection.getMenu(this.menu, this.language),
             content = window.JST["navigation-listView.html.twig"].render({
             menu: this.collection.get(this.menu),   // main-menu
+            languages: this.languages.toJSON(),
+            lang: this.language,
             root: menu                              // main-menu/en
         });
         this.$el.html(content);

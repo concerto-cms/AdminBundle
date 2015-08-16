@@ -35,6 +35,7 @@ _.extend(Pages.Controller.prototype, {
     listAction: function(lang) {
         var view = new Pages.ListView({
                 collection: this.pages,
+                languages: this.languages,
                 language: lang
             });
         this.setView(view);

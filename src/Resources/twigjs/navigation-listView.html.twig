@@ -20,6 +20,14 @@
 {% block title %}Navigation <small>{{ menu.get('label') }}</small>{% endblock %}
 {% block body %}
 <div class="container">
+    <ul class="nav nav-pills">
+        {% for language in languages %}
+            <li role="presentation" class="{{ language.name == lang ? 'active' : '' }}">
+                <a href="#/{{ menu.get('name') }}/{{ language.name }}">{{ language.description }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+    <br />
     <div class="row">
         <div class="col-sm-6 navigation-list">
             {{ macros.renderList(root) }}
