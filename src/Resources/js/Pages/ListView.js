@@ -4,7 +4,6 @@ Pages.ListView = Backbone.View.extend({
         _.extend(this, options);
     },
     render: function() {
-        console.dir(this.languages.toJSON());
         var pages = this.getPages(),
             content = window.JST["pages-listView.html.twig"].render({
                 pages: pages,
@@ -19,7 +18,7 @@ Pages.ListView = Backbone.View.extend({
     },
     addPage: function() {
         var model = new Model.Page({
-                parent: this.collection.first().get('id')
+                parent: this.getPages()[0].get('id')
             }),
             dialog = new Pages.NewPageDialog({
                 pages: this.getPages(),
@@ -27,6 +26,7 @@ Pages.ListView = Backbone.View.extend({
                 model: model
             }),
             that = this;
+
 
         this.listenTo(dialog, "close", function() {
             this.stopListening(dialog);
@@ -37,6 +37,7 @@ Pages.ListView = Backbone.View.extend({
             that.render();
             dialog.close();
         });
+        window.dialog = dialog;
         dialog.render().open();
     },
 
