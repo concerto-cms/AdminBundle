@@ -1,5 +1,6 @@
-var Pages = Pages || {};
-Pages.ListView = Backbone.View.extend({
+var Backbone = require("backbone"),
+    app = require("Pages/app");
+module.exports = Backbone.View.extend({
     initialize: function(options) {
         _.extend(this, options);
     },
@@ -9,7 +10,7 @@ Pages.ListView = Backbone.View.extend({
                 pages: pages,
                 languages: this.languages.toJSON(),
                 lang: this.language,
-                types: Pages.Pagetypes.types.pluck("id")
+                types: app.pagetypes.types.pluck("id")
             });
         this.$el.html(content);
     },
@@ -22,7 +23,7 @@ Pages.ListView = Backbone.View.extend({
             }),
             dialog = new Pages.NewPageDialog({
                 pages: this.getPages(),
-                types: Pages.Pagetypes.getTypes(),
+                types: app.pagetypes.getTypes(),
                 model: model
             }),
             that = this;

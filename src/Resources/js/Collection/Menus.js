@@ -1,7 +1,7 @@
-var Collection = Collection || {};
+var Backbone = require("backbone");
 
-Collection.Menus = Backbone.Collection.extend({
-    model: Model.Menu,
+module.exports = Backbone.Collection.extend({
+    model: require("Model/Menu"),
 
     getMenu: function(name, language) {
         return this.get(name + "/" + language);

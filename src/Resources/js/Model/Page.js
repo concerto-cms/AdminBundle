@@ -1,5 +1,5 @@
-var Model = Model || {};
-Model.Page = Backbone.Model.extend({
+var Backbone = require("backbone");
+module.exports = Backbone.Model.extend({
     defaults: {
         type: 'simplepage'
     },

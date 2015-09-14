@@ -1,5 +1,5 @@
-var Pages = Pages || {};
-Pages.Pagetypes = {
+var Backbone = require("backbone");
+module.exports = {
     types: new Backbone.Collection([], {
         model: Backbone.Model
     }),

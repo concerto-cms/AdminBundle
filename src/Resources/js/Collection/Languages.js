@@ -1,4 +1,4 @@
-var Collection = Collection || {};
-Collection.Languages = Backbone.Collection.extend({
-    model: Model.Language
+var Backbone = require("backbone");
+module.exports = Backbone.Collection.extend({
+    model: require("Model/Language")
 });
