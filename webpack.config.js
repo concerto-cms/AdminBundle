@@ -3,7 +3,7 @@ var webpack = require("webpack");
 
 module.exports = {
     entry: {
-        pages: "Pages/app",
+        pages: "Pages/index",
         base: [
             "jquery",
             "underscore",
@@ -28,8 +28,7 @@ module.exports = {
 
     module: {
         loaders: [
-            { test: /tests/, loader: "mocha" },
-
+                        { test: /\.twig/, loader: "twig" },
 //                        { test: /\.css$/, loader: "style!css" },
 //                        { test: /\.less$/, loader: "style!css!less" }
         ]
@@ -38,7 +37,12 @@ module.exports = {
         fs: "empty"
     },
     resolve: {
-        root: [path.resolve(__dirname, "bower_components"), path.resolve(__dirname, "src/Resources/js"), path.resolve(__dirname, ".")],
+        root: [
+            path.resolve(__dirname, "bower_components"),
+            path.resolve(__dirname, "src/Resources/js"),
+            path.resolve(__dirname, "."),
+            path.resolve(__dirname, "src/Resources/twigjs")
+        ],
         alias: {
         }
     },
@@ -51,6 +55,7 @@ module.exports = {
         ),
         new webpack.optimize.CommonsChunkPlugin("base", "base.js"),
         new webpack.ProvidePlugin({
+            "Backbone": "backbone"
 //            "window.jQuery": "jquery",
 //            jQuery: "jquery",
 //            $: "jquery",

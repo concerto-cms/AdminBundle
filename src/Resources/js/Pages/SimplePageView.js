@@ -1,5 +1,6 @@
-var Pages = Pages || {};
-Pages.SimplePageView = Backbone.View.extend({
+var Backbone = require("backbone");
+
+module.exports = Backbone.View.extend({
     tagName: "form",
     initialize: function(options) {
         this.originalModel = options.model;

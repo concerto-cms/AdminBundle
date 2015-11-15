@@ -5,12 +5,8 @@
 {% endblock %}
 {% block javascript %}
     {% javascripts injector="concerto.pages"
-        '@ConcertoCmsAdminBundle/Resources/js/Model/Page.js'
-        '@ConcertoCmsAdminBundle/Resources/js/Model/Language.js'
-        '@ConcertoCmsAdminBundle/Resources/js/Collection/Pages.js'
-        '@ConcertoCmsAdminBundle/Resources/js/Collection/Languages.js'
-        '@ConcertoCmsAdminBundle/Resources/js/Pages/*.js'
-        '@ConcertoCmsAdminBundle/Resources/public/js/templates.admin.js'
+        '@ConcertoCmsAdminBundle/Resources/public/js/base.js'
+        '@ConcertoCmsAdminBundle/Resources/public/js/pages.js'
     %}
     <script src="{{ asset_url }}"></script>
     {% endjavascripts %}
@@ -18,11 +14,5 @@
     {% include '@ConcertoCmsAdmin/_Partials/ckeditor.html.twig' %}
 
     {{ render(controller('ConcertoCmsAdminBundle:Pages:pagetypes')) }}
-
-    <script>
-        controller = new Pages.Controller({
-            el: document.getElementById("pages-container")
-        });
-    </script>
 
 {% endblock %}

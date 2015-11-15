@@ -1,5 +1,7 @@
-var Pages = Pages || {};
-Pages.NewPageDialog = Backbone.View.extend({
+var Backbone = require("backbone"),
+    _ = require("underscore");
+
+module.exports = Backbone.View.extend({
     className: "modal fade",
     initialize: function(options) {
         _.extend(this, options);

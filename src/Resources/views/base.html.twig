@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <title>{% block title %}Concerto CMS{% endblock %}</title>
-    {% stylesheets '@ConcertoCmsAdminBundle/Resources/public/css/app.css' filter='cssrewrite' %}
-    <link rel="stylesheet" href="{{ asset_url }}" />
-    {% endstylesheets %}
+    <link rel="stylesheet" href="{{ asset('bundles/concertocmsadmin/css/app.css') }}" />
 
     {% block stylesheets %}{% endblock %}
     {% set appleFormats = [57, 114, 72, 144, 60, 120, 76, 152, 180] %}
