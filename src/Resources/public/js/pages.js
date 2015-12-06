@@ -8,9 +8,9 @@ webpackJsonp([1],[
 	    $ = __webpack_require__(10),
 	    Routing = global.Routing,
 	    Controller = __webpack_require__(11),
-	    Router = __webpack_require__(22),
-	    LanguagesCollection = __webpack_require__(23),
-	    PagesCollection = __webpack_require__(25);
+	    Router = __webpack_require__(26),
+	    LanguagesCollection = __webpack_require__(27),
+	    PagesCollection = __webpack_require__(29);
 
 	var Application = Marionette.Application.extend({
 	    initialize: function() {
@@ -51,10 +51,7 @@ webpackJsonp([1],[
 	});
 
 	var app = global.app = new Application();
-	global.SimplePageView = __webpack_require__(27);
-
-	app.start();
-
+	global.SimplePageView = __webpack_require__(30);
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
@@ -170,7 +167,7 @@ webpackJsonp([1],[
 	var Marionette = __webpack_require__(5),
 	    pagetypes = __webpack_require__(12),
 	    _ = __webpack_require__(2),
-	    NewPageDialog = __webpack_require__(14);
+	    PageModel = __webpack_require__(14);
 
 	    module.exports = Marionette.ItemView.extend({
 	        template: __webpack_require__(15),
@@ -189,27 +186,30 @@ webpackJsonp([1],[
 	            "click .add-page": "addPage"
 	        },
 	        addPage: function() {
-	            var model = new Model.Page({
-	                    parent: this.getPages()[0].get('id')
-	                }),
-	                dialog = new NewPageDialog({
-	                    pages: this.getPages(),
-	                    types: pagetypes.getTypes(),
-	                    model: model
-	                }),
-	                that = this;
+	            //require.ensure("./NewPageDialog", _.bind(function(require) {
+	                var NewPageDialog = __webpack_require__(22);
+	                var model = new PageModel({
+	                        parent: this.getPages()[0].get('id')
+	                    }),
+	                    dialog = new NewPageDialog({
+	                        pages: this.getPages(),
+	                        types: pagetypes.getTypes(),
+	                        model: model
+	                    }),
+	                    that = this;
 
 
-	            this.listenTo(dialog, "close", function() {
-	                this.stopListening(dialog);
-	                dialog.remove();
-	            });
-	            this.listenTo(dialog, "save", function(model) {
-	                that.collection.add(model);
-	                that.render();
-	                dialog.close();
-	            });
-	            dialog.render().open();
+	                this.listenTo(dialog, "close", function() {
+	                    this.stopListening(dialog);
+	                    dialog.remove();
+	                });
+	                this.listenTo(dialog, "save", function(model) {
+	                    that.collection.add(model);
+	                    that.render();
+	                    dialog.close();
+	                });
+	                dialog.render().open();
+	            //}, this));
 	        },
 
 	        getPages: function() {
@@ -224,87 +224,34 @@ webpackJsonp([1],[
 
 	var Backbone = __webpack_require__(3),
 	    _ = __webpack_require__(2);
-
-	module.exports = Backbone.View.extend({
-	    className: "modal fade",
-	    initialize: function(options) {
-	        _.extend(this, options);
-	        this.$el.appendTo(document.body);
-	        this.listenTo(this.model, "change:type", this.setActiveType);
+	module.exports = Backbone.Model.extend({
+	    defaults: {
+	        type: 'simplepage'
 	    },
-	    render: function() {
-	        var content = window.JST["pages-newPageDialog.html.twig"].render(this);
-	        this.$el.html(content);
-	        this.setActiveType();
-	        this.stickit();
-	        return this;
-	    },
-	    bindings: {
-	        '[name=slug]': 'slug',
-	        '[name=title]': 'title',
-	        '[name=parent]': 'parent'
-	    },
-	    events: {
-	        'hidden.bs.modal': 'onClose',
-	        'click .page-types a': 'onClickPagetype',
-	        'submit form': 'onSubmit'
-	    },
-	    open: function() {
-	        this.$el.modal("show");
-	    },
-	    close: function() {
-	        this.$el.modal("hide");
-	    },
-	    onClose: function() {
-	        this.trigger("close");
-	    },
-	    onClickPagetype: function(e) {
-	        var type = $(e.currentTarget).data("type");
-	        this.model.set('type', type);
-	        e.preventDefault();
-	    },
-	    onSubmit: function(e) {
-	        e.preventDefault();
-	        this.save();
-	    },
-	    save: function() {
-	        var that = this,
-	            model = this.model.toJSON(),
-	            type = model.type,
-	            parent = model.parent;
-	        delete model.type;
-	        delete model.parent;
-
-	        window.dialogModel = model;
-	        $.ajax({
-	            type: 'POST',
-	            url: Routing.generate('concerto_cms_core_pages_rest_get', {path: parent}),
-	            data: JSON.stringify ({
-	                type: type,
-	                page: model
-	            }),
-	            contentType: "application/json",
-	            dataType: 'json'
-	        })
-	        .done(function(data) {
-	            that.model.set(data);
-	            that.trigger("save", that.model);
-	        });
-
-
-	    },
-	    setActiveType: function() {
-	        var type = this.model.get('type'),
-	            el;
-
-	        try {
-	            el = this.$(".page-types [data-type=" + type + "]");
-	            el.addClass("active").siblings().removeClass("active");
-	        } catch (e) {
-	            this.$(".page-types a.active").removeClass("active");
+	    set: function(attrs, options) {
+	        if (typeof attrs == "object" && attrs.id) {
+	            arguments[0].id = attrs.id.replace("/cms/pages/", "");
 	        }
+	        Backbone.Model.prototype.set.apply(this, arguments);
+	    },
+
+	    getLanguage: function() {
+	        if (!this.id) {
+	            return null;
+	        }
+	        var urlParts = this.id.split("/");
+	        return _.first(urlParts);
+	    },
+	    url: function() {
+	        return Routing.generate('concerto_cms_core_pages_rest_get', {path: this.id});
+	    },
+	    toJSON: function() {
+	        var data = Backbone.Model.prototype.toJSON.apply(this, arguments);
+	        data.language = this.getLanguage();
+	        return data;
 	    }
 	});
+
 
 /***/ },
 /* 15 */
@@ -697,6 +644,458 @@ webpackJsonp([1],[
 /* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
+	var Marionette = __webpack_require__(5),
+	    _ = __webpack_require__(2);
+
+	__webpack_require__(23);
+	module.exports = Marionette.ItemView.extend({
+	    className: "modal fade",
+	    template: __webpack_require__(24),
+	    initialize: function(options) {
+	        _.extend(this, options);
+	        this.$el.appendTo(document.body);
+	        this.listenTo(this.model, "change:type", this.setActiveType);
+	    },
+	    onRender: function() {
+	        this.setActiveType();
+	        this.stickit();
+	    },
+	    bindings: {
+	        '[name=slug]': 'slug',
+	        '[name=title]': 'title',
+	        '[name=parent]': 'parent'
+	    },
+	    events: {
+	        'hidden.bs.modal': 'onClose',
+	        'click .page-types a': 'onClickPagetype',
+	        'submit form': 'onSubmit'
+	    },
+	    open: function() {
+	        this.$el.modal("show");
+	    },
+	    close: function() {
+	        this.$el.modal("hide");
+	    },
+	    onClose: function() {
+	        this.trigger("close");
+	    },
+	    onClickPagetype: function(e) {
+	        var type = $(e.currentTarget).data("type");
+	        this.model.set('type', type);
+	        e.preventDefault();
+	    },
+	    onSubmit: function(e) {
+	        e.preventDefault();
+	        this.save();
+	    },
+	    save: function() {
+	        var that = this,
+	            model = this.model.toJSON(),
+	            type = model.type,
+	            parent = model.parent;
+	        delete model.type;
+	        delete model.parent;
+
+	        window.dialogModel = model;
+	        $.ajax({
+	            type: 'POST',
+	            url: Routing.generate('concerto_cms_core_pages_rest_get', {path: parent}),
+	            data: JSON.stringify ({
+	                type: type,
+	                page: model
+	            }),
+	            contentType: "application/json",
+	            dataType: 'json'
+	        })
+	        .done(function(data) {
+	            that.model.set(data);
+	            that.trigger("save", that.model);
+	        });
+
+
+	    },
+	    setActiveType: function() {
+	        var type = this.model.get('type'),
+	            el;
+
+	        try {
+	            el = this.$(".page-types [data-type=" + type + "]");
+	            el.addClass("active").siblings().removeClass("active");
+	        } catch (e) {
+	            this.$(".page-types a.active").removeClass("active");
+	        }
+	    }
+	});
+
+/***/ },
+/* 23 */
+/***/ function(module, exports) {
+
+	/* ========================================================================
+	 * Bootstrap: modal.js v3.3.4
+	 * http://getbootstrap.com/javascript/#modals
+	 * ========================================================================
+	 * Copyright 2011-2015 Twitter, Inc.
+	 * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+	 * ======================================================================== */
+
+
+	+function ($) {
+	  'use strict';
+
+	  // MODAL CLASS DEFINITION
+	  // ======================
+
+	  var Modal = function (element, options) {
+	    this.options             = options
+	    this.$body               = $(document.body)
+	    this.$element            = $(element)
+	    this.$dialog             = this.$element.find('.modal-dialog')
+	    this.$backdrop           = null
+	    this.isShown             = null
+	    this.originalBodyPad     = null
+	    this.scrollbarWidth      = 0
+	    this.ignoreBackdropClick = false
+
+	    if (this.options.remote) {
+	      this.$element
+	        .find('.modal-content')
+	        .load(this.options.remote, $.proxy(function () {
+	          this.$element.trigger('loaded.bs.modal')
+	        }, this))
+	    }
+	  }
+
+	  Modal.VERSION  = '3.3.4'
+
+	  Modal.TRANSITION_DURATION = 300
+	  Modal.BACKDROP_TRANSITION_DURATION = 150
+
+	  Modal.DEFAULTS = {
+	    backdrop: true,
+	    keyboard: true,
+	    show: true
+	  }
+
+	  Modal.prototype.toggle = function (_relatedTarget) {
+	    return this.isShown ? this.hide() : this.show(_relatedTarget)
+	  }
+
+	  Modal.prototype.show = function (_relatedTarget) {
+	    var that = this
+	    var e    = $.Event('show.bs.modal', { relatedTarget: _relatedTarget })
+
+	    this.$element.trigger(e)
+
+	    if (this.isShown || e.isDefaultPrevented()) return
+
+	    this.isShown = true
+
+	    this.checkScrollbar()
+	    this.setScrollbar()
+	    this.$body.addClass('modal-open')
+
+	    this.escape()
+	    this.resize()
+
+	    this.$element.on('click.dismiss.bs.modal', '[data-dismiss="modal"]', $.proxy(this.hide, this))
+
+	    this.$dialog.on('mousedown.dismiss.bs.modal', function () {
+	      that.$element.one('mouseup.dismiss.bs.modal', function (e) {
+	        if ($(e.target).is(that.$element)) that.ignoreBackdropClick = true
+	      })
+	    })
+
+	    this.backdrop(function () {
+	      var transition = $.support.transition && that.$element.hasClass('fade')
+
+	      if (!that.$element.parent().length) {
+	        that.$element.appendTo(that.$body) // don't move modals dom position
+	      }
+
+	      that.$element
+	        .show()
+	        .scrollTop(0)
+
+	      that.adjustDialog()
+
+	      if (transition) {
+	        that.$element[0].offsetWidth // force reflow
+	      }
+
+	      that.$element
+	        .addClass('in')
+	        .attr('aria-hidden', false)
+
+	      that.enforceFocus()
+
+	      var e = $.Event('shown.bs.modal', { relatedTarget: _relatedTarget })
+
+	      transition ?
+	        that.$dialog // wait for modal to slide in
+	          .one('bsTransitionEnd', function () {
+	            that.$element.trigger('focus').trigger(e)
+	          })
+	          .emulateTransitionEnd(Modal.TRANSITION_DURATION) :
+	        that.$element.trigger('focus').trigger(e)
+	    })
+	  }
+
+	  Modal.prototype.hide = function (e) {
+	    if (e) e.preventDefault()
+
+	    e = $.Event('hide.bs.modal')
+
+	    this.$element.trigger(e)
+
+	    if (!this.isShown || e.isDefaultPrevented()) return
+
+	    this.isShown = false
+
+	    this.escape()
+	    this.resize()
+
+	    $(document).off('focusin.bs.modal')
+
+	    this.$element
+	      .removeClass('in')
+	      .attr('aria-hidden', true)
+	      .off('click.dismiss.bs.modal')
+	      .off('mouseup.dismiss.bs.modal')
+
+	    this.$dialog.off('mousedown.dismiss.bs.modal')
+
+	    $.support.transition && this.$element.hasClass('fade') ?
+	      this.$element
+	        .one('bsTransitionEnd', $.proxy(this.hideModal, this))
+	        .emulateTransitionEnd(Modal.TRANSITION_DURATION) :
+	      this.hideModal()
+	  }
+
+	  Modal.prototype.enforceFocus = function () {
+	    $(document)
+	      .off('focusin.bs.modal') // guard against infinite focus loop
+	      .on('focusin.bs.modal', $.proxy(function (e) {
+	        if (this.$element[0] !== e.target && !this.$element.has(e.target).length) {
+	          this.$element.trigger('focus')
+	        }
+	      }, this))
+	  }
+
+	  Modal.prototype.escape = function () {
+	    if (this.isShown && this.options.keyboard) {
+	      this.$element.on('keydown.dismiss.bs.modal', $.proxy(function (e) {
+	        e.which == 27 && this.hide()
+	      }, this))
+	    } else if (!this.isShown) {
+	      this.$element.off('keydown.dismiss.bs.modal')
+	    }
+	  }
+
+	  Modal.prototype.resize = function () {
+	    if (this.isShown) {
+	      $(window).on('resize.bs.modal', $.proxy(this.handleUpdate, this))
+	    } else {
+	      $(window).off('resize.bs.modal')
+	    }
+	  }
+
+	  Modal.prototype.hideModal = function () {
+	    var that = this
+	    this.$element.hide()
+	    this.backdrop(function () {
+	      that.$body.removeClass('modal-open')
+	      that.resetAdjustments()
+	      that.resetScrollbar()
+	      that.$element.trigger('hidden.bs.modal')
+	    })
+	  }
+
+	  Modal.prototype.removeBackdrop = function () {
+	    this.$backdrop && this.$backdrop.remove()
+	    this.$backdrop = null
+	  }
+
+	  Modal.prototype.backdrop = function (callback) {
+	    var that = this
+	    var animate = this.$element.hasClass('fade') ? 'fade' : ''
+
+	    if (this.isShown && this.options.backdrop) {
+	      var doAnimate = $.support.transition && animate
+
+	      this.$backdrop = $('<div class="modal-backdrop ' + animate + '" />')
+	        .appendTo(this.$body)
+
+	      this.$element.on('click.dismiss.bs.modal', $.proxy(function (e) {
+	        if (this.ignoreBackdropClick) {
+	          this.ignoreBackdropClick = false
+	          return
+	        }
+	        if (e.target !== e.currentTarget) return
+	        this.options.backdrop == 'static'
+	          ? this.$element[0].focus()
+	          : this.hide()
+	      }, this))
+
+	      if (doAnimate) this.$backdrop[0].offsetWidth // force reflow
+
+	      this.$backdrop.addClass('in')
+
+	      if (!callback) return
+
+	      doAnimate ?
+	        this.$backdrop
+	          .one('bsTransitionEnd', callback)
+	          .emulateTransitionEnd(Modal.BACKDROP_TRANSITION_DURATION) :
+	        callback()
+
+	    } else if (!this.isShown && this.$backdrop) {
+	      this.$backdrop.removeClass('in')
+
+	      var callbackRemove = function () {
+	        that.removeBackdrop()
+	        callback && callback()
+	      }
+	      $.support.transition && this.$element.hasClass('fade') ?
+	        this.$backdrop
+	          .one('bsTransitionEnd', callbackRemove)
+	          .emulateTransitionEnd(Modal.BACKDROP_TRANSITION_DURATION) :
+	        callbackRemove()
+
+	    } else if (callback) {
+	      callback()
+	    }
+	  }
+
+	  // these following methods are used to handle overflowing modals
+
+	  Modal.prototype.handleUpdate = function () {
+	    this.adjustDialog()
+	  }
+
+	  Modal.prototype.adjustDialog = function () {
+	    var modalIsOverflowing = this.$element[0].scrollHeight > document.documentElement.clientHeight
+
+	    this.$element.css({
+	      paddingLeft:  !this.bodyIsOverflowing && modalIsOverflowing ? this.scrollbarWidth : '',
+	      paddingRight: this.bodyIsOverflowing && !modalIsOverflowing ? this.scrollbarWidth : ''
+	    })
+	  }
+
+	  Modal.prototype.resetAdjustments = function () {
+	    this.$element.css({
+	      paddingLeft: '',
+	      paddingRight: ''
+	    })
+	  }
+
+	  Modal.prototype.checkScrollbar = function () {
+	    var fullWindowWidth = window.innerWidth
+	    if (!fullWindowWidth) { // workaround for missing window.innerWidth in IE8
+	      var documentElementRect = document.documentElement.getBoundingClientRect()
+	      fullWindowWidth = documentElementRect.right - Math.abs(documentElementRect.left)
+	    }
+	    this.bodyIsOverflowing = document.body.clientWidth < fullWindowWidth
+	    this.scrollbarWidth = this.measureScrollbar()
+	  }
+
+	  Modal.prototype.setScrollbar = function () {
+	    var bodyPad = parseInt((this.$body.css('padding-right') || 0), 10)
+	    this.originalBodyPad = document.body.style.paddingRight || ''
+	    if (this.bodyIsOverflowing) this.$body.css('padding-right', bodyPad + this.scrollbarWidth)
+	  }
+
+	  Modal.prototype.resetScrollbar = function () {
+	    this.$body.css('padding-right', this.originalBodyPad)
+	  }
+
+	  Modal.prototype.measureScrollbar = function () { // thx walsh
+	    var scrollDiv = document.createElement('div')
+	    scrollDiv.className = 'modal-scrollbar-measure'
+	    this.$body.append(scrollDiv)
+	    var scrollbarWidth = scrollDiv.offsetWidth - scrollDiv.clientWidth
+	    this.$body[0].removeChild(scrollDiv)
+	    return scrollbarWidth
+	  }
+
+
+	  // MODAL PLUGIN DEFINITION
+	  // =======================
+
+	  function Plugin(option, _relatedTarget) {
+	    return this.each(function () {
+	      var $this   = $(this)
+	      var data    = $this.data('bs.modal')
+	      var options = $.extend({}, Modal.DEFAULTS, $this.data(), typeof option == 'object' && option)
+
+	      if (!data) $this.data('bs.modal', (data = new Modal(this, options)))
+	      if (typeof option == 'string') data[option](_relatedTarget)
+	      else if (options.show) data.show(_relatedTarget)
+	    })
+	  }
+
+	  var old = $.fn.modal
+
+	  $.fn.modal             = Plugin
+	  $.fn.modal.Constructor = Modal
+
+
+	  // MODAL NO CONFLICT
+	  // =================
+
+	  $.fn.modal.noConflict = function () {
+	    $.fn.modal = old
+	    return this
+	  }
+
+
+	  // MODAL DATA-API
+	  // ==============
+
+	  $(document).on('click.bs.modal.data-api', '[data-toggle="modal"]', function (e) {
+	    var $this   = $(this)
+	    var href    = $this.attr('href')
+	    var $target = $($this.attr('data-target') || (href && href.replace(/.*(?=#[^\s]+$)/, ''))) // strip for ie7
+	    var option  = $target.data('bs.modal') ? 'toggle' : $.extend({ remote: !/#/.test(href) && href }, $target.data(), $this.data())
+
+	    if ($this.is('a')) e.preventDefault()
+
+	    $target.one('show.bs.modal', function (showEvent) {
+	      if (showEvent.isDefaultPrevented()) return // only register focus restorer if modal will actually get shown
+	      $target.one('hidden.bs.modal', function () {
+	        $this.is(':visible') && $this.trigger('focus')
+	      })
+	    })
+	    Plugin.call($target, option, this)
+	  })
+
+	}(jQuery);
+
+
+/***/ },
+/* 24 */
+/***/ function(module, exports, __webpack_require__) {
+
+	__webpack_require__(25);
+
+	    var twig = __webpack_require__(17).twig,
+	        template = twig({id:"pages-newPageDialog.html", data:[{"type":"logic","token":{"type":"Twig.logic.type.extends","stack":[{"type":"Twig.expression.type.string","value":"layout-modal.html"}]}},{"type":"raw","value":"\r\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"title","output":[{"type":"raw","value":"Add a page"}]}},{"type":"raw","value":"\r\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"body","output":[{"type":"raw","value":"\r\n    <div class=\"form-group\">\r\n        <label for=\"frmNewPage_title\">Title</label>\r\n        <input type=\"text\" class=\"form-control\" id=\"frmNewPage_title\" placeholder=\"Page title\" name=\"title\" required />\r\n    </div>\r\n    <div class=\"form-group\">\r\n        <label for=\"frmNewPage_slug\">Url</label>\r\n        <select class=\"form-control\" name=\"parent\">\r\n            "},{"type":"logic","token":{"type":"Twig.logic.type.for","key_var":null,"value_var":"page","expression":[{"type":"Twig.expression.type.variable","value":"pages","match":["pages"]}],"output":[{"type":"raw","value":"\r\n            <option>"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"page","match":["page"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"id"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"</option>\r\n            "}]}},{"type":"raw","value":"\r\n        </select> / <input type=\"text\" class=\"form-control\" id=\"frmNewPage_slug\" placeholder=\"Page title\" name=\"slug\" required />\r\n    </div>\r\n    "},{"type":"logic","token":{"type":"Twig.logic.type.if","stack":[{"type":"Twig.expression.type.variable","value":"types","match":["types"]},{"type":"Twig.expression.type.filter","value":"length","match":["|length","length"]},{"type":"Twig.expression.type.number","value":1,"match":["1",null]},{"type":"Twig.expression.type.operator.binary","value":">","precidence":8,"associativity":"leftToRight","operator":">"}],"output":[{"type":"raw","value":"\r\n    <div class=\"form-group\">\r\n        <label>Page type</label>\r\n        <div class=\"list-group page-types\">\r\n            "},{"type":"logic","token":{"type":"Twig.logic.type.for","key_var":null,"value_var":"type","expression":[{"type":"Twig.expression.type.variable","value":"types","match":["types"]}],"output":[{"type":"raw","value":"\r\n                <a href=\"#\" class=\"list-group-item\" data-type=\""},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"type","match":["type"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"id"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"\">\r\n                    <h4 class=\"list-group-item-heading\">"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"type","match":["type"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"title"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"</h4>\r\n                    <p class=\"list-group-item-text\">"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"type","match":["type"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"description"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"</p>\r\n                </a>\r\n            "}]}},{"type":"raw","value":"\r\n        </div>\r\n    </div>\r\n    "}]}},{"type":"raw","value":"\r\n\r\n"}]}},{"type":"raw","value":"\r\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"footer","output":[{"type":"raw","value":"\r\n    <button type=\"submit\" class=\"btn btn-lg btn-success\">Create</button>\r\n"}]}}], allowInlineIncludes: true});
+
+	    module.exports = function(context) { return template.render(context); }
+
+/***/ },
+/* 25 */
+/***/ function(module, exports, __webpack_require__) {
+
+	    var twig = __webpack_require__(17).twig,
+	        template = twig({id:"layout-modal.html", data:[{"type":"raw","value":"<div class=\"modal-dialog\">\r\n    <div class=\"modal-content\">\r\n        <form>\r\n            <div class=\"modal-header\">\r\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n                <h4 class=\"modal-title\">"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"title","output":[]}},{"type":"raw","value":"</h4>\r\n            </div>\r\n            <div class=\"modal-body\">\r\n                "},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"body","output":[]}},{"type":"raw","value":"\r\n            </div>\r\n            <div class=\"modal-footer\">\r\n                "},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"footer","output":[]}},{"type":"raw","value":"\r\n            </div>\r\n        </form>\r\n    </div><!-- /.modal-content -->\r\n</div><!-- /.modal-dialog -->\r\n"}], allowInlineIncludes: true});
+
+	    module.exports = function(context) { return template.render(context); }
+
+/***/ },
+/* 26 */
+/***/ function(module, exports, __webpack_require__) {
+
 	var Marionette = __webpack_require__(5);
 
 	var Router = Marionette.AppRouter.extend({
@@ -710,17 +1109,17 @@ webpackJsonp([1],[
 	module.exports = Router;
 
 /***/ },
-/* 23 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Backbone = __webpack_require__(3);
 	module.exports = Backbone.Collection.extend({
-	    model: __webpack_require__(24)
+	    model: __webpack_require__(28)
 	});
 
 
 /***/ },
-/* 24 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Backbone = __webpack_require__(3);
@@ -730,12 +1129,12 @@ webpackJsonp([1],[
 
 
 /***/ },
-/* 25 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Backbone = __webpack_require__(3);
 	module.exports = Backbone.Collection.extend({
-	    model: __webpack_require__(26),
+	    model: __webpack_require__(14),
 	    comparator: 'id',
 	    getByLanguage: function(lang) {
 	        return this.filter(function(model) {
@@ -746,50 +1145,21 @@ webpackJsonp([1],[
 
 
 /***/ },
-/* 26 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Backbone = __webpack_require__(3),
-	    _ = __webpack_require__(2);
-	module.exports = Backbone.Model.extend({
-	    defaults: {
-	        type: 'simplepage'
-	    },
-	    set: function(attrs, options) {
-	        if (typeof attrs == "object" && attrs.id) {
-	            arguments[0].id = attrs.id.replace("/cms/pages/", "");
-	        }
-	        Backbone.Model.prototype.set.apply(this, arguments);
-	    },
+	var Marionette = __webpack_require__(5);
 
-	    getLanguage: function() {
-	        var urlParts = this.id.split("/");
-	        return _.first(urlParts);
-	    },
-	    url: function() {
-	        return Routing.generate('concerto_cms_core_pages_rest_get', {path: this.id});
-	    }
-	});
-
-
-/***/ },
-/* 27 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Backbone = __webpack_require__(3);
-
-	module.exports = Backbone.View.extend({
+	module.exports = Marionette.ItemView.extend({
 	    tagName: "form",
+	    template: __webpack_require__(31),
 	    initialize: function(options) {
 	        this.originalModel = options.model;
 	        this.model = options.model.clone();
 	        _.extend(this, options);
 	    },
-	    render: function() {
-	        var content = window.JST["pages-simplePageView.html.twig"].render(this),
-	            editor;
-	        this.$el.html(content);
-
+	    onAttach: function() {
+	        var editor;
 	        editor = this.$("[name=content]").ckeditor({
 	            customConfig: ''
 	        }).data("ckeditorInstance");
@@ -798,6 +1168,9 @@ webpackJsonp([1],[
 	        }, this));
 
 	        this.stickit();
+	    },
+	    onRender: function() {
+
 	    },
 	    events: {
 	        "submit": "onSubmit"
@@ -817,6 +1190,17 @@ webpackJsonp([1],[
 	    }
 	});
 
+
+/***/ },
+/* 31 */
+/***/ function(module, exports, __webpack_require__) {
+
+	__webpack_require__(16);
+
+	    var twig = __webpack_require__(17).twig,
+	        template = twig({id:"pages-simplePageView.html", data:[{"type":"logic","token":{"type":"Twig.logic.type.extends","stack":[{"type":"Twig.expression.type.string","value":"layout-page.html"}]}},{"type":"raw","value":"\r\n\r\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"title","output":[{"type":"raw","value":"Pages <small>"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"title","match":["title"]}]},{"type":"raw","value":"</small>"}]}},{"type":"raw","value":"\r\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"breadcrumb","output":[{"type":"raw","value":"<a href=\"#list/"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"language","match":["language"]}]},{"type":"raw","value":"\">&lt; Back to overview</a>"}]}},{"type":"raw","value":"\r\n\r\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"body","output":[{"type":"raw","value":"\r\n<div class=\"container\">\r\n    <div class=\"form-group\">\r\n        <label for=\"frmSimplePage_title\">Title</label>\r\n        <input type=\"text\" name=\"title\" class=\"form-control\" id=\"frmSimplePage_title\" placeholder=\"Page title\">\r\n    </div>\r\n    <div class=\"form-group\">\r\n        <label for=\"frmSimplePage_meta_description\">Meta description</label>\r\n        <input type=\"text\" name=\"meta_description\" class=\"form-control\" id=\"frmSimplePage_meta_description\" placeholder=\"Meta description\">\r\n    </div>\r\n    <div class=\"form-group\">\r\n        <label for=\"frmSimplePage_content\">Content</label>\r\n        <textarea id=\"frmSimplePage_content\" name=\"content\" class=\"form-control\"></textarea>\r\n    </div>\r\n</div>\r\n    <hr />\r\n    <div class=\"container\">\r\n        <button type=\"submit\" class=\"btn btn-success btn-lg pull-right\"><i class=\"glyphicon glyphicon-ok\"></i> Save</button>\r\n    </div>\r\n"}]}}], allowInlineIncludes: true});
+
+	    module.exports = function(context) { return template.render(context); }
 
 /***/ }
 ]);

@@ -1,19 +1,18 @@
-var Backbone = require("backbone"),
+var Marionette = require("backbone.marionette"),
     _ = require("underscore");
 
-module.exports = Backbone.View.extend({
+require("bootstrap/js/modal");
+module.exports = Marionette.ItemView.extend({
     className: "modal fade",
+    template: require("pages-newPageDialog.html.twig"),
     initialize: function(options) {
         _.extend(this, options);
         this.$el.appendTo(document.body);
         this.listenTo(this.model, "change:type", this.setActiveType);
     },
-    render: function() {
-        var content = window.JST["pages-newPageDialog.html.twig"].render(this);
-        this.$el.html(content);
+    onRender: function() {
         this.setActiveType();
         this.stickit();
-        return this;
     },
     bindings: {
         '[name=slug]': 'slug',

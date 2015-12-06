@@ -12,10 +12,18 @@ module.exports = Backbone.Model.extend({
     },
 
     getLanguage: function() {
+        if (!this.id) {
+            return null;
+        }
         var urlParts = this.id.split("/");
         return _.first(urlParts);
     },
     url: function() {
         return Routing.generate('concerto_cms_core_pages_rest_get', {path: this.id});
+    },
+    toJSON: function() {
+        var data = Backbone.Model.prototype.toJSON.apply(this, arguments);
+        data.language = this.getLanguage();
+        return data;
     }
 });

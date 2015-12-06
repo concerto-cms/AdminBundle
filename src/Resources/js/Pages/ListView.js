@@ -1,7 +1,7 @@
 var Marionette = require("backbone.marionette"),
     pagetypes = require("./Pagetypes"),
     _ = require("underscore"),
-    NewPageDialog = require("./NewPageDialog");
+    PageModel = require("Model/Page");
 
     module.exports = Marionette.ItemView.extend({
         template: require("pages-listView.html.twig"),
@@ -20,27 +20,30 @@ var Marionette = require("backbone.marionette"),
             "click .add-page": "addPage"
         },
         addPage: function() {
-            var model = new Model.Page({
-                    parent: this.getPages()[0].get('id')
-                }),
-                dialog = new NewPageDialog({
-                    pages: this.getPages(),
-                    types: pagetypes.getTypes(),
-                    model: model
-                }),
-                that = this;
+            //require.ensure("./NewPageDialog", _.bind(function(require) {
+                var NewPageDialog = require("./NewPageDialog");
+                var model = new PageModel({
+                        parent: this.getPages()[0].get('id')
+                    }),
+                    dialog = new NewPageDialog({
+                        pages: this.getPages(),
+                        types: pagetypes.getTypes(),
+                        model: model
+                    }),
+                    that = this;
 
 
-            this.listenTo(dialog, "close", function() {
-                this.stopListening(dialog);
-                dialog.remove();
-            });
-            this.listenTo(dialog, "save", function(model) {
-                that.collection.add(model);
-                that.render();
-                dialog.close();
-            });
-            dialog.render().open();
+                this.listenTo(dialog, "close", function() {
+                    this.stopListening(dialog);
+                    dialog.remove();
+                });
+                this.listenTo(dialog, "save", function(model) {
+                    that.collection.add(model);
+                    that.render();
+                    dialog.close();
+                });
+                dialog.render().open();
+            //}, this));
         },
 
         getPages: function() {

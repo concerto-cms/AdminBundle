@@ -10,9 +10,9 @@
     %}
     <script src="{{ asset_url }}"></script>
     {% endjavascripts %}
-
     {% include '@ConcertoCmsAdmin/_Partials/ckeditor.html.twig' %}
-
     {{ render(controller('ConcertoCmsAdminBundle:Pages:pagetypes')) }}
-
+    <script>
+        app.start();
+    </script>
 {% endblock %}

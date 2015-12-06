@@ -48,5 +48,3 @@ var Application = Marionette.Application.extend({
 
 var app = global.app = new Application();
 global.SimplePageView = require("./SimplePageView");
-
-app.start();
