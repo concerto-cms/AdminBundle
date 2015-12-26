@@ -8,9 +8,9 @@ webpackJsonp([1],[
 	    $ = __webpack_require__(10),
 	    Routing = global.Routing,
 	    Controller = __webpack_require__(11),
-	    Router = __webpack_require__(26),
-	    LanguagesCollection = __webpack_require__(27),
-	    PagesCollection = __webpack_require__(29);
+	    Router = __webpack_require__(27),
+	    LanguagesCollection = __webpack_require__(28),
+	    PagesCollection = __webpack_require__(30);
 
 	var Application = Marionette.Application.extend({
 	    initialize: function() {
@@ -51,7 +51,7 @@ webpackJsonp([1],[
 	});
 
 	var app = global.app = new Application();
-	global.SimplePageView = __webpack_require__(30);
+	global.SimplePageView = __webpack_require__(31);
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
@@ -201,14 +201,12 @@ webpackJsonp([1],[
 
 	                this.listenTo(dialog, "close", function() {
 	                    this.stopListening(dialog);
-	                    dialog.remove();
 	                });
 	                this.listenTo(dialog, "save", function(model) {
 	                    that.collection.add(model);
 	                    that.render();
-	                    dialog.close();
 	                });
-	                dialog.render().open();
+	                dialog.triggerMethod("show");
 	            //}, this));
 	        },
 
@@ -269,7 +267,7 @@ webpackJsonp([1],[
 /***/ function(module, exports, __webpack_require__) {
 
 	    var twig = __webpack_require__(17).twig,
-	        template = twig({id:"layout-page.html", data:[{"type":"raw","value":"<div class=\"page-header\">\r\n    <div class=\"container\">\r\n        <h1>"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"title","output":[]}},{"type":"raw","value":"</h1>\r\n\r\n        "},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"breadcrumb","output":[]}},{"type":"raw","value":"\r\n        "},{"type":"logic","token":{"type":"Twig.logic.type.if","stack":[{"type":"Twig.expression.type._function","fn":"block","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"buttons"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]},{"type":"Twig.expression.type.test","filter":"empty","modifier":"not"}],"output":[{"type":"raw","value":"\r\n        <div class=\"btn-group pull-right\" role=\"group\">\r\n            "},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"buttons","output":[]}},{"type":"raw","value":"\r\n        </div>\r\n        "}]}},{"type":"raw","value":"\r\n    </div>\r\n</div>\r\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"body","output":[]}},{"type":"raw","value":"\r\n"}], allowInlineIncludes: true});
+	        template = twig({id:"layout-page.html", data:[{"type":"raw","value":"<div class=\"page-header\">\n    <div class=\"container\">\n        <h1>"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"title","output":[]}},{"type":"raw","value":"</h1>\n\n        "},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"breadcrumb","output":[]}},{"type":"raw","value":"        "},{"type":"logic","token":{"type":"Twig.logic.type.if","stack":[{"type":"Twig.expression.type._function","fn":"block","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"buttons"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]},{"type":"Twig.expression.type.test","filter":"empty","modifier":"not"}],"output":[{"type":"raw","value":"        <div class=\"btn-group pull-right\" role=\"group\">\n            "},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"buttons","output":[]}},{"type":"raw","value":"        </div>\n        "}]}},{"type":"raw","value":"    </div>\n</div>\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"body","output":[]}}], allowInlineIncludes: true});
 
 	    module.exports = function(context) { return template.render(context); }
 
@@ -649,12 +647,15 @@ webpackJsonp([1],[
 
 	__webpack_require__(23);
 	module.exports = Marionette.ItemView.extend({
-	    className: "modal fade",
 	    template: __webpack_require__(24),
 	    initialize: function(options) {
 	        _.extend(this, options);
-	        this.$el.appendTo(document.body);
 	        this.listenTo(this.model, "change:type", this.setActiveType);
+	    },
+	    behaviors: {
+	        DialogBehavior: {
+	            behaviorClass: __webpack_require__(26)
+	        }
 	    },
 	    onRender: function() {
 	        this.setActiveType();
@@ -666,18 +667,8 @@ webpackJsonp([1],[
 	        '[name=parent]': 'parent'
 	    },
 	    events: {
-	        'hidden.bs.modal': 'onClose',
 	        'click .page-types a': 'onClickPagetype',
 	        'submit form': 'onSubmit'
-	    },
-	    open: function() {
-	        this.$el.modal("show");
-	    },
-	    close: function() {
-	        this.$el.modal("hide");
-	    },
-	    onClose: function() {
-	        this.trigger("close");
 	    },
 	    onClickPagetype: function(e) {
 	        var type = $(e.currentTarget).data("type");
@@ -709,6 +700,7 @@ webpackJsonp([1],[
 	        })
 	        .done(function(data) {
 	            that.model.set(data);
+	            that.triggerMethod("hide");
 	            that.trigger("save", that.model);
 	        });
 
@@ -732,7 +724,7 @@ webpackJsonp([1],[
 /***/ function(module, exports) {
 
 	/* ========================================================================
-	 * Bootstrap: modal.js v3.3.4
+	 * Bootstrap: modal.js v3.3.6
 	 * http://getbootstrap.com/javascript/#modals
 	 * ========================================================================
 	 * Copyright 2011-2015 Twitter, Inc.
@@ -766,7 +758,7 @@ webpackJsonp([1],[
 	    }
 	  }
 
-	  Modal.VERSION  = '3.3.4'
+	  Modal.VERSION  = '3.3.6'
 
 	  Modal.TRANSITION_DURATION = 300
 	  Modal.BACKDROP_TRANSITION_DURATION = 150
@@ -823,9 +815,7 @@ webpackJsonp([1],[
 	        that.$element[0].offsetWidth // force reflow
 	      }
 
-	      that.$element
-	        .addClass('in')
-	        .attr('aria-hidden', false)
+	      that.$element.addClass('in')
 
 	      that.enforceFocus()
 
@@ -859,7 +849,6 @@ webpackJsonp([1],[
 
 	    this.$element
 	      .removeClass('in')
-	      .attr('aria-hidden', true)
 	      .off('click.dismiss.bs.modal')
 	      .off('mouseup.dismiss.bs.modal')
 
@@ -923,7 +912,8 @@ webpackJsonp([1],[
 	    if (this.isShown && this.options.backdrop) {
 	      var doAnimate = $.support.transition && animate
 
-	      this.$backdrop = $('<div class="modal-backdrop ' + animate + '" />')
+	      this.$backdrop = $(document.createElement('div'))
+	        .addClass('modal-backdrop ' + animate)
 	        .appendTo(this.$body)
 
 	      this.$element.on('click.dismiss.bs.modal', $.proxy(function (e) {
@@ -1079,7 +1069,7 @@ webpackJsonp([1],[
 	__webpack_require__(25);
 
 	    var twig = __webpack_require__(17).twig,
-	        template = twig({id:"pages-newPageDialog.html", data:[{"type":"logic","token":{"type":"Twig.logic.type.extends","stack":[{"type":"Twig.expression.type.string","value":"layout-modal.html"}]}},{"type":"raw","value":"\r\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"title","output":[{"type":"raw","value":"Add a page"}]}},{"type":"raw","value":"\r\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"body","output":[{"type":"raw","value":"\r\n    <div class=\"form-group\">\r\n        <label for=\"frmNewPage_title\">Title</label>\r\n        <input type=\"text\" class=\"form-control\" id=\"frmNewPage_title\" placeholder=\"Page title\" name=\"title\" required />\r\n    </div>\r\n    <div class=\"form-group\">\r\n        <label for=\"frmNewPage_slug\">Url</label>\r\n        <select class=\"form-control\" name=\"parent\">\r\n            "},{"type":"logic","token":{"type":"Twig.logic.type.for","key_var":null,"value_var":"page","expression":[{"type":"Twig.expression.type.variable","value":"pages","match":["pages"]}],"output":[{"type":"raw","value":"\r\n            <option>"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"page","match":["page"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"id"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"</option>\r\n            "}]}},{"type":"raw","value":"\r\n        </select> / <input type=\"text\" class=\"form-control\" id=\"frmNewPage_slug\" placeholder=\"Page title\" name=\"slug\" required />\r\n    </div>\r\n    "},{"type":"logic","token":{"type":"Twig.logic.type.if","stack":[{"type":"Twig.expression.type.variable","value":"types","match":["types"]},{"type":"Twig.expression.type.filter","value":"length","match":["|length","length"]},{"type":"Twig.expression.type.number","value":1,"match":["1",null]},{"type":"Twig.expression.type.operator.binary","value":">","precidence":8,"associativity":"leftToRight","operator":">"}],"output":[{"type":"raw","value":"\r\n    <div class=\"form-group\">\r\n        <label>Page type</label>\r\n        <div class=\"list-group page-types\">\r\n            "},{"type":"logic","token":{"type":"Twig.logic.type.for","key_var":null,"value_var":"type","expression":[{"type":"Twig.expression.type.variable","value":"types","match":["types"]}],"output":[{"type":"raw","value":"\r\n                <a href=\"#\" class=\"list-group-item\" data-type=\""},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"type","match":["type"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"id"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"\">\r\n                    <h4 class=\"list-group-item-heading\">"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"type","match":["type"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"title"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"</h4>\r\n                    <p class=\"list-group-item-text\">"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"type","match":["type"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"description"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"</p>\r\n                </a>\r\n            "}]}},{"type":"raw","value":"\r\n        </div>\r\n    </div>\r\n    "}]}},{"type":"raw","value":"\r\n\r\n"}]}},{"type":"raw","value":"\r\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"footer","output":[{"type":"raw","value":"\r\n    <button type=\"submit\" class=\"btn btn-lg btn-success\">Create</button>\r\n"}]}}], allowInlineIncludes: true});
+	        template = twig({id:"pages-newPageDialog.html", data:[{"type":"logic","token":{"type":"Twig.logic.type.extends","stack":[{"type":"Twig.expression.type.string","value":"layout-modal.html"}]}},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"title","output":[{"type":"raw","value":"Add a page"}]}},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"body","output":[{"type":"raw","value":"    <div class=\"form-group\">\n        <label for=\"frmNewPage_title\">Title</label>\n        <input type=\"text\" class=\"form-control\" id=\"frmNewPage_title\" placeholder=\"Page title\" name=\"title\" required />\n    </div>\n    <div class=\"form-group\">\n        <label for=\"frmNewPage_slug\">Url</label>\n        <select class=\"form-control\" name=\"parent\">\n            "},{"type":"logic","token":{"type":"Twig.logic.type.for","key_var":null,"value_var":"page","expression":[{"type":"Twig.expression.type.variable","value":"pages","match":["pages"]}],"output":[{"type":"raw","value":"            <option>"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"page","match":["page"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"id"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"</option>\n            "}]}},{"type":"raw","value":"        </select> / <input type=\"text\" class=\"form-control\" id=\"frmNewPage_slug\" placeholder=\"Page title\" name=\"slug\" required />\n    </div>\n    "},{"type":"logic","token":{"type":"Twig.logic.type.if","stack":[{"type":"Twig.expression.type.variable","value":"types","match":["types"]},{"type":"Twig.expression.type.filter","value":"length","match":["|length","length"]},{"type":"Twig.expression.type.number","value":1,"match":["1",null]},{"type":"Twig.expression.type.operator.binary","value":">","precidence":8,"associativity":"leftToRight","operator":">"}],"output":[{"type":"raw","value":"    <div class=\"form-group\">\n        <label>Page type</label>\n        <div class=\"list-group page-types\">\n            "},{"type":"logic","token":{"type":"Twig.logic.type.for","key_var":null,"value_var":"type","expression":[{"type":"Twig.expression.type.variable","value":"types","match":["types"]}],"output":[{"type":"raw","value":"                <a href=\"#\" class=\"list-group-item\" data-type=\""},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"type","match":["type"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"id"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"\">\n                    <h4 class=\"list-group-item-heading\">"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"type","match":["type"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"title"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"</h4>\n                    <p class=\"list-group-item-text\">"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"type","match":["type"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"description"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"</p>\n                </a>\n            "}]}},{"type":"raw","value":"        </div>\n    </div>\n    "}]}},{"type":"raw","value":"\n"}]}},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"footer","output":[{"type":"raw","value":"    <button type=\"submit\" class=\"btn btn-lg btn-success\">Create</button>\n"}]}}], allowInlineIncludes: true});
 
 	    module.exports = function(context) { return template.render(context); }
 
@@ -1088,12 +1078,48 @@ webpackJsonp([1],[
 /***/ function(module, exports, __webpack_require__) {
 
 	    var twig = __webpack_require__(17).twig,
-	        template = twig({id:"layout-modal.html", data:[{"type":"raw","value":"<div class=\"modal-dialog\">\r\n    <div class=\"modal-content\">\r\n        <form>\r\n            <div class=\"modal-header\">\r\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n                <h4 class=\"modal-title\">"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"title","output":[]}},{"type":"raw","value":"</h4>\r\n            </div>\r\n            <div class=\"modal-body\">\r\n                "},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"body","output":[]}},{"type":"raw","value":"\r\n            </div>\r\n            <div class=\"modal-footer\">\r\n                "},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"footer","output":[]}},{"type":"raw","value":"\r\n            </div>\r\n        </form>\r\n    </div><!-- /.modal-content -->\r\n</div><!-- /.modal-dialog -->\r\n"}], allowInlineIncludes: true});
+	        template = twig({id:"layout-modal.html", data:[{"type":"raw","value":"<div class=\"modal-dialog\">\n    <div class=\"modal-content\">\n        <form>\n            <div class=\"modal-header\">\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\n                <h4 class=\"modal-title\">"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"title","output":[]}},{"type":"raw","value":"</h4>\n            </div>\n            <div class=\"modal-body\">\n                "},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"body","output":[]}},{"type":"raw","value":"            </div>\n            <div class=\"modal-footer\">\n                "},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"footer","output":[]}},{"type":"raw","value":"            </div>\n        </form>\n    </div><!-- /.modal-content -->\n</div><!-- /.modal-dialog -->\n"}], allowInlineIncludes: true});
 
 	    module.exports = function(context) { return template.render(context); }
 
 /***/ },
 /* 26 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Marionette = __webpack_require__(5);
+	__webpack_require__(23);
+
+	module.exports = Marionette.Behavior.extend({
+	    initialize: function() {
+	        this.$el
+	            .addClass("modal fade")
+	            .attr({
+	                tabindex: "-1",
+	                role: "dialog"
+	            });
+	    },
+	    onShow: function() {
+	        this.view.render();
+	        this.$el.appendTo(document.body);
+	        this.$el.modal(this.options.modalOptions);
+	    },
+	    onHide: function() {
+	        this.$el.modal('hide');
+	    },
+	    defaults: {
+	        modalOptions: {}
+	    },
+	    events: {
+	        'hidden.bs.modal': 'onHidden'
+	    },
+	    onHidden: function() {
+	        this.view.triggerMethod("close");
+	        this.view.destroy();
+	    }
+	});
+
+/***/ },
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Marionette = __webpack_require__(5);
@@ -1109,17 +1135,17 @@ webpackJsonp([1],[
 	module.exports = Router;
 
 /***/ },
-/* 27 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Backbone = __webpack_require__(3);
 	module.exports = Backbone.Collection.extend({
-	    model: __webpack_require__(28)
+	    model: __webpack_require__(29)
 	});
 
 
 /***/ },
-/* 28 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Backbone = __webpack_require__(3);
@@ -1129,7 +1155,7 @@ webpackJsonp([1],[
 
 
 /***/ },
-/* 29 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Backbone = __webpack_require__(3);
@@ -1145,14 +1171,14 @@ webpackJsonp([1],[
 
 
 /***/ },
-/* 30 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Marionette = __webpack_require__(5);
 
 	module.exports = Marionette.ItemView.extend({
 	    tagName: "form",
-	    template: __webpack_require__(31),
+	    template: __webpack_require__(32),
 	    initialize: function(options) {
 	        this.originalModel = options.model;
 	        this.model = options.model.clone();
@@ -1192,13 +1218,13 @@ webpackJsonp([1],[
 
 
 /***/ },
-/* 31 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
 	__webpack_require__(16);
 
 	    var twig = __webpack_require__(17).twig,
-	        template = twig({id:"pages-simplePageView.html", data:[{"type":"logic","token":{"type":"Twig.logic.type.extends","stack":[{"type":"Twig.expression.type.string","value":"layout-page.html"}]}},{"type":"raw","value":"\r\n\r\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"title","output":[{"type":"raw","value":"Pages <small>"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"title","match":["title"]}]},{"type":"raw","value":"</small>"}]}},{"type":"raw","value":"\r\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"breadcrumb","output":[{"type":"raw","value":"<a href=\"#list/"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"language","match":["language"]}]},{"type":"raw","value":"\">&lt; Back to overview</a>"}]}},{"type":"raw","value":"\r\n\r\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"body","output":[{"type":"raw","value":"\r\n<div class=\"container\">\r\n    <div class=\"form-group\">\r\n        <label for=\"frmSimplePage_title\">Title</label>\r\n        <input type=\"text\" name=\"title\" class=\"form-control\" id=\"frmSimplePage_title\" placeholder=\"Page title\">\r\n    </div>\r\n    <div class=\"form-group\">\r\n        <label for=\"frmSimplePage_meta_description\">Meta description</label>\r\n        <input type=\"text\" name=\"meta_description\" class=\"form-control\" id=\"frmSimplePage_meta_description\" placeholder=\"Meta description\">\r\n    </div>\r\n    <div class=\"form-group\">\r\n        <label for=\"frmSimplePage_content\">Content</label>\r\n        <textarea id=\"frmSimplePage_content\" name=\"content\" class=\"form-control\"></textarea>\r\n    </div>\r\n</div>\r\n    <hr />\r\n    <div class=\"container\">\r\n        <button type=\"submit\" class=\"btn btn-success btn-lg pull-right\"><i class=\"glyphicon glyphicon-ok\"></i> Save</button>\r\n    </div>\r\n"}]}}], allowInlineIncludes: true});
+	        template = twig({id:"pages-simplePageView.html", data:[{"type":"logic","token":{"type":"Twig.logic.type.extends","stack":[{"type":"Twig.expression.type.string","value":"layout-page.html"}]}},{"type":"raw","value":"\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"title","output":[{"type":"raw","value":"Pages <small>"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"title","match":["title"]}]},{"type":"raw","value":"</small>"}]}},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"breadcrumb","output":[{"type":"raw","value":"<a href=\"#list/"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"language","match":["language"]}]},{"type":"raw","value":"\">&lt; Back to overview</a>"}]}},{"type":"raw","value":"\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"body","output":[{"type":"raw","value":"<div class=\"container\">\n    <div class=\"form-group\">\n        <label for=\"frmSimplePage_title\">Title</label>\n        <input type=\"text\" name=\"title\" class=\"form-control\" id=\"frmSimplePage_title\" placeholder=\"Page title\">\n    </div>\n    <div class=\"form-group\">\n        <label for=\"frmSimplePage_meta_description\">Meta description</label>\n        <input type=\"text\" name=\"meta_description\" class=\"form-control\" id=\"frmSimplePage_meta_description\" placeholder=\"Meta description\">\n    </div>\n    <div class=\"form-group\">\n        <label for=\"frmSimplePage_content\">Content</label>\n        <textarea id=\"frmSimplePage_content\" name=\"content\" class=\"form-control\"></textarea>\n    </div>\n</div>\n    <hr />\n    <div class=\"container\">\n        <button type=\"submit\" class=\"btn btn-success btn-lg pull-right\"><i class=\"glyphicon glyphicon-ok\"></i> Save</button>\n    </div>\n"}]}}], allowInlineIncludes: true});
 
 	    module.exports = function(context) { return template.render(context); }
 

@@ -35,14 +35,12 @@ var Marionette = require("backbone.marionette"),
 
                 this.listenTo(dialog, "close", function() {
                     this.stopListening(dialog);
-                    dialog.remove();
                 });
                 this.listenTo(dialog, "save", function(model) {
                     that.collection.add(model);
                     that.render();
-                    dialog.close();
                 });
-                dialog.render().open();
+                dialog.triggerMethod("show");
             //}, this));
         },
 

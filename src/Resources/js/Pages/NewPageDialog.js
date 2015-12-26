@@ -3,12 +3,15 @@ var Marionette = require("backbone.marionette"),
 
 require("bootstrap/js/modal");
 module.exports = Marionette.ItemView.extend({
-    className: "modal fade",
     template: require("pages-newPageDialog.html.twig"),
     initialize: function(options) {
         _.extend(this, options);
-        this.$el.appendTo(document.body);
         this.listenTo(this.model, "change:type", this.setActiveType);
+    },
+    behaviors: {
+        DialogBehavior: {
+            behaviorClass: require("../Utils/DialogBehavior")
+        }
     },
     onRender: function() {
         this.setActiveType();
@@ -20,18 +23,8 @@ module.exports = Marionette.ItemView.extend({
         '[name=parent]': 'parent'
     },
     events: {
-        'hidden.bs.modal': 'onClose',
         'click .page-types a': 'onClickPagetype',
         'submit form': 'onSubmit'
-    },
-    open: function() {
-        this.$el.modal("show");
-    },
-    close: function() {
-        this.$el.modal("hide");
-    },
-    onClose: function() {
-        this.trigger("close");
     },
     onClickPagetype: function(e) {
         var type = $(e.currentTarget).data("type");
@@ -63,6 +56,7 @@ module.exports = Marionette.ItemView.extend({
         })
         .done(function(data) {
             that.model.set(data);
+            that.triggerMethod("hide");
             that.trigger("save", that.model);
         });
 
