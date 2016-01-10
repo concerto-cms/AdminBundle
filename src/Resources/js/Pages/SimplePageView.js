@@ -26,7 +26,7 @@ Pages.SimplePageView = Backbone.View.extend({
     bindings: {
         "[name=title]": "title",
         "[name=content]": "content",
-        "[name=meta_description]": "meta_description"
+        "[name=meta_description]": "metaDescription"
     },
     onSubmit: function(e) {
         e.preventDefault();
