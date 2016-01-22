@@ -7,21 +7,8 @@
 {% endblock %}
 {% block javascript %}
     {% javascripts
-        '@ConcertoCmsAdminBundle/Resources/js/Model/Page.js'
-        '@ConcertoCmsAdminBundle/Resources/js/Model/Language.js'
-        '@ConcertoCmsAdminBundle/Resources/js/Model/Menu.js'
-        '@ConcertoCmsAdminBundle/Resources/js/Collection/Pages.js'
-        '@ConcertoCmsAdminBundle/Resources/js/Collection/Languages.js'
-        '@ConcertoCmsAdminBundle/Resources/js/Collection/Menus.js'
-        '@ConcertoCmsAdminBundle/Resources/js/Navigation/*.js'
-        '@ConcertoCmsAdminBundle/Resources/public/js/templates.admin.js'
+    '@ConcertoCmsAdminBundle/Resources/public/js/navigation.js'
     %}
-        <script src="{{ asset_url }}"></script>
+    <script src="{{ asset_url }}"></script>
     {% endjavascripts %}
-
-    <script>
-        controller = new Navigation.Controller({
-            el: document.getElementById("navigation-container")
-        });
-    </script>
 {% endblock %}

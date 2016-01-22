@@ -3,15 +3,16 @@ var webpack = require("webpack");
 
 module.exports = {
     entry: {
-        pages: "Pages/index",
         base: [
             "jquery",
             "underscore",
             "backbone",
             "backbone.stickit",
             "backbone.marionette"
-        ]/*,
-        testBundle: ['phantomjs-polyfill', 'tests']*/
+        ],
+        pages: "Pages/index",
+        login: "Login/index",
+        navigation: "Navigation/index"
     },
     output: {
         path: path.resolve(__dirname, "src/Resources/public/js/"),
