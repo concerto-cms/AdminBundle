@@ -40,7 +40,6 @@ module.exports = {
         root: [
             path.resolve(__dirname, "bower_components"),
             path.resolve(__dirname, "src/Resources/js"),
-            path.resolve(__dirname, "."),
             path.resolve(__dirname, "src/Resources/twigjs")
         ],
         alias: {
