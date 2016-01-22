@@ -2,10 +2,10 @@ webpackJsonp([3],[
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(global) {var Application = __webpack_require__(11);
+	/* WEBPACK VAR INJECTION */(function(global) {var Application = __webpack_require__(28);
 
 	var app = global.app = new Application();
-	global.SimplePageView = __webpack_require__(35);
+	global.SimplePageView = __webpack_require__(42);
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
@@ -22,212 +22,40 @@ webpackJsonp([3],[
 /* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(global) {var Backbone = __webpack_require__(12),
-	    Marionette = __webpack_require__(5),
-	    _ = __webpack_require__(13),
-	    $ = __webpack_require__(14),
-	    Routing = global.Routing,
-	    Controller = __webpack_require__(15),
-	    Router = __webpack_require__(31),
-	    LanguagesCollection = __webpack_require__(32),
-	    PagesCollection = __webpack_require__(34);
-
-	var Application = Marionette.Application.extend({
-	    initialize: function() {
-	        this.container = new Marionette.Region({
-	            el: "#pages-container"
-	        });
-
-	        this.controller = new Controller({
-	            app: this
-	        });
-	        this.router = new Router({
-	            controller: this.controller
-	        });
-	        this.pagetypes = __webpack_require__(16);
-	    },
-	    onStart: function() {
-	        $.when(this.loadLanguages(), this.loadPages())
-	            .done(_.bind(function() {
-	                Backbone.history.start();
-	            }, this));
-	    },
-	    loadLanguages: function() {
-	        var that = this;
-	        return $.getJSON(Routing.generate("concerto_cms_core_languages_rest"))
-	            .done(function(data) {
-	                that.languages = new LanguagesCollection(_.values(data));
-	            });
-	    },
-	    loadPages: function() {
-	        var that = this;
-	        return $.getJSON(Routing.generate("concerto_cms_core_pages_rest"))
-	            .done(function(data) {
-	                that.pages = new PagesCollection(data);
-	            });
-
-	    }
-
+	var Backbone = __webpack_require__(3);
+	module.exports = Backbone.Collection.extend({
+	    model: __webpack_require__(12)
 	});
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+
 
 /***/ },
 /* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(global) {module.exports = global["Backbone"] = __webpack_require__(3);
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+	var Backbone = __webpack_require__(3);
+	module.exports = Backbone.Model.extend({
+	    idAttribute: "name"
+	});
+
 
 /***/ },
 /* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(global) {module.exports = global["_"] = __webpack_require__(2);
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+	var Backbone = __webpack_require__(3);
+	module.exports = Backbone.Collection.extend({
+	    model: __webpack_require__(14),
+	    comparator: 'id',
+	    getByLanguage: function(lang) {
+	        return this.filter(function(model) {
+	            return model.getLanguage() == lang;
+	        })
+	    }
+	});
+
 
 /***/ },
 /* 14 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(global) {module.exports = global["jQuery"] = __webpack_require__(1);
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
-
-/***/ },
-/* 15 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var _ = __webpack_require__(2),
-	    Marionette = __webpack_require__(5),
-	    Pagetypes = __webpack_require__(16),
-	    ListView = __webpack_require__(17);
-
-	var Controller = Marionette.Object.extend({
-	    initialize: function(options){
-	        _.extend(this, options);
-
-	    },
-	    index: function() {
-	        this.app.router.navigate("list/" + this.app.languages.first().id, {trigger: true});
-	    },
-	    list: function(lang) {
-	        var view = new ListView({
-	            collection: this.app.pages,
-	            languages: this.app.languages,
-	            language: lang
-	        });
-	        this.setView(view);
-	    },
-	    edit: function(path) {
-	        var page = this.app.pages.get(path),
-	            view = Pagetypes.createView(page);
-
-	        this.listenTo(view, "save", function() {
-	            page.save();
-	            this.router.navigate("list/" + page.getLanguage(), {trigger: true});
-	        });
-	        this.setView(view);
-
-	    },
-	    setView: function(view) {
-	        this.app.container.show(view);
-	    }
-
-	});
-
-	module.exports = Controller;
-
-/***/ },
-/* 16 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Backbone = __webpack_require__(3);
-	module.exports = {
-	    types: new Backbone.Collection([], {
-	        model: Backbone.Model
-	    }),
-	    addType: function(name, attrs) {
-	        var model = new Backbone.Model(attrs);
-	        model.set('id', name);
-	        this.types.add(model);
-	    },
-	    getTypes: function() {
-	        return this.types.models;
-	    },
-	    createView: function(model) {
-	        var type = this.getType(model.get('type')),
-	            view;
-	        if (!type) {
-	            type = this.getType("simplepage");
-	        }
-	        view = type.get('view');
-	        return new view({
-	            model: model
-	        });
-	    },
-	    getType: function(name) {
-	        return this.types.get(name);
-	    }
-	};
-
-
-/***/ },
-/* 17 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Marionette = __webpack_require__(5),
-	    pagetypes = __webpack_require__(16),
-	    _ = __webpack_require__(2),
-	    PageModel = __webpack_require__(18);
-
-	    module.exports = Marionette.ItemView.extend({
-	        template: __webpack_require__(19),
-	        initialize: function(options) {
-	            _.extend(this, options);
-	        },
-	        serializeData: function() {
-	            return {
-	                pages: this.getPages(),
-	                languages: this.languages.toJSON(),
-	                lang: this.language,
-	                types: pagetypes.types.pluck("id")
-	            }
-	        },
-	        events: {
-	            "click .add-page": "addPage"
-	        },
-	        addPage: function() {
-	            //require.ensure("./NewPageDialog", _.bind(function(require) {
-	                var NewPageDialog = __webpack_require__(26);
-	                var model = new PageModel({
-	                        parent: this.getPages()[0].get('id')
-	                    }),
-	                    dialog = new NewPageDialog({
-	                        pages: this.getPages(),
-	                        types: pagetypes.getTypes(),
-	                        model: model
-	                    }),
-	                    that = this;
-
-
-	                this.listenTo(dialog, "close", function() {
-	                    this.stopListening(dialog);
-	                });
-	                this.listenTo(dialog, "save", function(model) {
-	                    that.collection.add(model);
-	                    that.render();
-	                });
-	                dialog.triggerMethod("show");
-	            //}, this));
-	        },
-
-	        getPages: function() {
-	            return this.collection.getByLanguage(this.language);
-	        }
-	});
-
-
-/***/ },
-/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Backbone = __webpack_require__(3),
@@ -262,26 +90,12 @@ webpackJsonp([3],[
 
 
 /***/ },
-/* 19 */
-/***/ function(module, exports, __webpack_require__) {
-
-	__webpack_require__(20);
-
-	var twig = __webpack_require__(21).twig,
-	    template = twig({id:"E:\\Projects\\ConcertoCmsStandardEdition\\vendor\\concerto-cms\\admin-bundle\\src\\Resources\\twigjs\\pages-listView.html.twig", data:[{"type":"logic","token":{"type":"Twig.logic.type.extends","stack":[{"type":"Twig.expression.type.string","value":"E:\\Projects\\ConcertoCmsStandardEdition\\vendor\\concerto-cms\\admin-bundle\\src\\Resources\\twigjs\\layout-page.html.twig"}]}},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"title","output":[{"type":"raw","value":"Pages <small>Overview</small>"}]}},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"buttons","output":[{"type":"raw","value":"    <button type=\"button\" class=\"btn btn-info btn-sm add-page\">Add a page</button>\n"}]}},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"body","output":[{"type":"raw","value":"<div class=\"container\">\n    <ul class=\"nav nav-pills\">\n        "},{"type":"logic","token":{"type":"Twig.logic.type.for","key_var":null,"value_var":"language","expression":[{"type":"Twig.expression.type.variable","value":"languages","match":["languages"]}],"output":[{"type":"raw","value":"            <li role=\"presentation\" class=\""},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"language","match":["language"]},{"type":"Twig.expression.type.key.period","key":"name"},{"type":"Twig.expression.type.variable","value":"lang","match":["lang"]},{"type":"Twig.expression.type.operator.binary","value":"==","precidence":9,"associativity":"leftToRight","operator":"=="},{"type":"Twig.expression.type.string","value":"active"},{"type":"Twig.expression.type.string","value":""},{"type":"Twig.expression.type.operator.binary","value":"?","precidence":16,"associativity":"rightToLeft","operator":"?"}]},{"type":"raw","value":"\">\n                <a href=\"#/list/"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"language","match":["language"]},{"type":"Twig.expression.type.key.period","key":"name"}]},{"type":"raw","value":"\">"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"language","match":["language"]},{"type":"Twig.expression.type.key.period","key":"description"}]},{"type":"raw","value":"</a>\n            </li>\n        "}]}},{"type":"raw","value":"    </ul>\n    <br />\n    <div class=\"list-group\">\n        "},{"type":"logic","token":{"type":"Twig.logic.type.for","key_var":null,"value_var":"page","expression":[{"type":"Twig.expression.type.variable","value":"pages","match":["pages"]}],"output":[{"type":"raw","value":"            "},{"type":"logic","token":{"type":"Twig.logic.type.if","stack":[{"type":"Twig.expression.type.variable","value":"page","match":["page"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"type"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]},{"type":"Twig.expression.type.variable","value":"types","match":["types"]},{"type":"Twig.expression.type.operator.binary","value":"in","precidence":20,"associativity":"leftToRight","operator":"in"}],"output":[{"type":"raw","value":"            <a href=\"#edit/"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"page","match":["page"]},{"type":"Twig.expression.type.key.period","key":"id"}]},{"type":"raw","value":"\" class=\"list-group-item\">\n                <h4 class=\"list-group-item-heading\">"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"page","match":["page"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"title"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"</h4>\n                <p class=\"list-group-item-text\">"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"page","match":["page"]},{"type":"Twig.expression.type.key.period","key":"id"}]},{"type":"raw","value":"</p>\n            </a>\n            "}]}},{"type":"raw","value":"        "}]}},{"type":"raw","value":"    </div>\n</div>\n"}]}}], allowInlineIncludes: true});
-
-	module.exports = function(context) { return template.render(context); }
-
-/***/ },
-/* 20 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var twig = __webpack_require__(21).twig,
-	    template = twig({id:"E:\\Projects\\ConcertoCmsStandardEdition\\vendor\\concerto-cms\\admin-bundle\\src\\Resources\\twigjs\\layout-page.html.twig", data:[{"type":"raw","value":"<div class=\"page-header\">\n    <div class=\"container\">\n        <h1>"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"title","output":[]}},{"type":"raw","value":"</h1>\n\n        "},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"breadcrumb","output":[]}},{"type":"raw","value":"        "},{"type":"logic","token":{"type":"Twig.logic.type.if","stack":[{"type":"Twig.expression.type._function","fn":"block","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"buttons"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]},{"type":"Twig.expression.type.test","filter":"empty","modifier":"not"}],"output":[{"type":"raw","value":"        <div class=\"btn-group pull-right\" role=\"group\">\n            "},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"buttons","output":[]}},{"type":"raw","value":"        </div>\n        "}]}},{"type":"raw","value":"    </div>\n</div>\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"body","output":[]}}], allowInlineIncludes: true});
-
-	module.exports = function(context) { return template.render(context); }
-
-/***/ },
+/* 15 */,
+/* 16 */,
+/* 17 */,
+/* 18 */,
+/* 19 */,
+/* 20 */,
 /* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -649,22 +463,251 @@ webpackJsonp([3],[
 
 
 /***/ },
-/* 26 */
+/* 26 */,
+/* 27 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var twig = __webpack_require__(21).twig,
+	    template = twig({id:"E:\\Projects\\ConcertoCmsStandardEdition\\vendor\\concerto-cms\\admin-bundle\\src\\Resources\\twigjs\\layout-page.html.twig", data:[{"type":"raw","value":"<div class=\"page-header\">\n    <div class=\"container\">\n        <h1>"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"title","output":[]}},{"type":"raw","value":"</h1>\n\n        "},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"breadcrumb","output":[]}},{"type":"raw","value":"        "},{"type":"logic","token":{"type":"Twig.logic.type.if","stack":[{"type":"Twig.expression.type._function","fn":"block","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"buttons"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]},{"type":"Twig.expression.type.test","filter":"empty","modifier":"not"}],"output":[{"type":"raw","value":"        <div class=\"btn-group pull-right\" role=\"group\">\n            "},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"buttons","output":[]}},{"type":"raw","value":"        </div>\n        "}]}},{"type":"raw","value":"    </div>\n</div>\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"body","output":[]}}], allowInlineIncludes: true});
+
+	module.exports = function(context) { return template.render(context); }
+
+/***/ },
+/* 28 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(global) {var Backbone = __webpack_require__(29),
+	    Marionette = __webpack_require__(5),
+	    _ = __webpack_require__(30),
+	    $ = __webpack_require__(31),
+	    Routing = global.Routing,
+	    Controller = __webpack_require__(32),
+	    Router = __webpack_require__(41),
+	    LanguagesCollection = __webpack_require__(11),
+	    PagesCollection = __webpack_require__(13);
+
+	module.exports = Marionette.Application.extend({
+	    initialize: function() {
+	        this.container = new Marionette.Region({
+	            el: "#pages-container"
+	        });
+
+	        this.controller = new Controller({
+	            app: this
+	        });
+	        this.router = new Router({
+	            controller: this.controller
+	        });
+	        this.pagetypes = __webpack_require__(33);
+	    },
+	    onStart: function() {
+	        $.when(this.loadLanguages(), this.loadPages())
+	            .done(_.bind(function() {
+	                Backbone.history.start();
+	            }, this));
+	    },
+	    loadLanguages: function() {
+	        var that = this;
+	        return $.getJSON(Routing.generate("concerto_cms_core_languages_rest"))
+	            .done(function(data) {
+	                that.languages = new LanguagesCollection(_.values(data));
+	            });
+	    },
+	    loadPages: function() {
+	        var that = this;
+	        return $.getJSON(Routing.generate("concerto_cms_core_pages_rest"))
+	            .done(function(data) {
+	                that.pages = new PagesCollection(data);
+	            });
+
+	    }
+
+	});
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+
+/***/ },
+/* 29 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(global) {module.exports = global["Backbone"] = __webpack_require__(3);
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+
+/***/ },
+/* 30 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(global) {module.exports = global["_"] = __webpack_require__(2);
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+
+/***/ },
+/* 31 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(global) {module.exports = global["jQuery"] = __webpack_require__(1);
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+
+/***/ },
+/* 32 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var _ = __webpack_require__(2),
+	    Marionette = __webpack_require__(5),
+	    Pagetypes = __webpack_require__(33),
+	    ListView = __webpack_require__(34);
+
+	var Controller = Marionette.Object.extend({
+	    initialize: function(options){
+	        _.extend(this, options);
+
+	    },
+	    index: function() {
+	        this.app.router.navigate("list/" + this.app.languages.first().id, {trigger: true});
+	    },
+	    list: function(lang) {
+	        var view = new ListView({
+	            collection: this.app.pages,
+	            languages: this.app.languages,
+	            language: lang
+	        });
+	        this.setView(view);
+	    },
+	    edit: function(path) {
+	        var page = this.app.pages.get(path),
+	            view = Pagetypes.createView(page);
+
+	        this.listenTo(view, "save", _.bind(function() {
+	            page.save();
+	            this.router.navigate("list/" + page.getLanguage(), {trigger: true});
+	        }, this));
+	        this.setView(view);
+
+	    },
+	    setView: function(view) {
+	        this.app.container.show(view);
+	    }
+
+	});
+
+	module.exports = Controller;
+
+/***/ },
+/* 33 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Backbone = __webpack_require__(3);
+	module.exports = {
+	    types: new Backbone.Collection([], {
+	        model: Backbone.Model
+	    }),
+	    addType: function(name, attrs) {
+	        var model = new Backbone.Model(attrs);
+	        model.set('id', name);
+	        this.types.add(model);
+	    },
+	    getTypes: function() {
+	        return this.types.models;
+	    },
+	    createView: function(model) {
+	        var type = this.getType(model.get('type')),
+	            view;
+	        if (!type) {
+	            type = this.getType("simplepage");
+	        }
+	        view = type.get('view');
+	        return new view({
+	            model: model
+	        });
+	    },
+	    getType: function(name) {
+	        return this.types.get(name);
+	    }
+	};
+
+
+/***/ },
+/* 34 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Marionette = __webpack_require__(5),
+	    pagetypes = __webpack_require__(33),
+	    _ = __webpack_require__(2),
+	    PageModel = __webpack_require__(14);
+
+	    module.exports = Marionette.ItemView.extend({
+	        template: __webpack_require__(35),
+	        initialize: function(options) {
+	            _.extend(this, options);
+	        },
+	        serializeData: function() {
+	            return {
+	                pages: this.getPages(),
+	                languages: this.languages.toJSON(),
+	                lang: this.language,
+	                types: pagetypes.types.pluck("id")
+	            }
+	        },
+	        events: {
+	            "click .add-page": "addPage"
+	        },
+	        addPage: function() {
+	            //require.ensure("./NewPageDialog", _.bind(function(require) {
+	                var NewPageDialog = __webpack_require__(36);
+	                var model = new PageModel({
+	                        parent: this.getPages()[0].get('id')
+	                    }),
+	                    dialog = new NewPageDialog({
+	                        pages: this.getPages(),
+	                        types: pagetypes.getTypes(),
+	                        model: model
+	                    }),
+	                    that = this;
+
+
+	                this.listenTo(dialog, "close", function() {
+	                    this.stopListening(dialog);
+	                });
+	                this.listenTo(dialog, "save", function(model) {
+	                    that.collection.add(model);
+	                    that.render();
+	                });
+	                dialog.triggerMethod("show");
+	            //}, this));
+	        },
+
+	        getPages: function() {
+	            return this.collection.getByLanguage(this.language);
+	        }
+	});
+
+
+/***/ },
+/* 35 */
+/***/ function(module, exports, __webpack_require__) {
+
+	__webpack_require__(27);
+
+	var twig = __webpack_require__(21).twig,
+	    template = twig({id:"E:\\Projects\\ConcertoCmsStandardEdition\\vendor\\concerto-cms\\admin-bundle\\src\\Resources\\twigjs\\pages-listView.html.twig", data:[{"type":"logic","token":{"type":"Twig.logic.type.extends","stack":[{"type":"Twig.expression.type.string","value":"E:\\Projects\\ConcertoCmsStandardEdition\\vendor\\concerto-cms\\admin-bundle\\src\\Resources\\twigjs\\layout-page.html.twig"}]}},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"title","output":[{"type":"raw","value":"Pages <small>Overview</small>"}]}},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"buttons","output":[{"type":"raw","value":"    <button type=\"button\" class=\"btn btn-info btn-sm add-page\">Add a page</button>\n"}]}},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"body","output":[{"type":"raw","value":"<div class=\"container\">\n    <ul class=\"nav nav-pills\">\n        "},{"type":"logic","token":{"type":"Twig.logic.type.for","key_var":null,"value_var":"language","expression":[{"type":"Twig.expression.type.variable","value":"languages","match":["languages"]}],"output":[{"type":"raw","value":"            <li role=\"presentation\" class=\""},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"language","match":["language"]},{"type":"Twig.expression.type.key.period","key":"name"},{"type":"Twig.expression.type.variable","value":"lang","match":["lang"]},{"type":"Twig.expression.type.operator.binary","value":"==","precidence":9,"associativity":"leftToRight","operator":"=="},{"type":"Twig.expression.type.string","value":"active"},{"type":"Twig.expression.type.string","value":""},{"type":"Twig.expression.type.operator.binary","value":"?","precidence":16,"associativity":"rightToLeft","operator":"?"}]},{"type":"raw","value":"\">\n                <a href=\"#/list/"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"language","match":["language"]},{"type":"Twig.expression.type.key.period","key":"name"}]},{"type":"raw","value":"\">"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"language","match":["language"]},{"type":"Twig.expression.type.key.period","key":"description"}]},{"type":"raw","value":"</a>\n            </li>\n        "}]}},{"type":"raw","value":"    </ul>\n    <br />\n    <div class=\"list-group\">\n        "},{"type":"logic","token":{"type":"Twig.logic.type.for","key_var":null,"value_var":"page","expression":[{"type":"Twig.expression.type.variable","value":"pages","match":["pages"]}],"output":[{"type":"raw","value":"            "},{"type":"logic","token":{"type":"Twig.logic.type.if","stack":[{"type":"Twig.expression.type.variable","value":"page","match":["page"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"type"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]},{"type":"Twig.expression.type.variable","value":"types","match":["types"]},{"type":"Twig.expression.type.operator.binary","value":"in","precidence":20,"associativity":"leftToRight","operator":"in"}],"output":[{"type":"raw","value":"            <a href=\"#edit/"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"page","match":["page"]},{"type":"Twig.expression.type.key.period","key":"id"}]},{"type":"raw","value":"\" class=\"list-group-item\">\n                <h4 class=\"list-group-item-heading\">"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"page","match":["page"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"title"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"</h4>\n                <p class=\"list-group-item-text\">"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"page","match":["page"]},{"type":"Twig.expression.type.key.period","key":"id"}]},{"type":"raw","value":"</p>\n            </a>\n            "}]}},{"type":"raw","value":"        "}]}},{"type":"raw","value":"    </div>\n</div>\n"}]}}], allowInlineIncludes: true});
+
+	module.exports = function(context) { return template.render(context); }
+
+/***/ },
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Marionette = __webpack_require__(5),
 	    _ = __webpack_require__(2);
 
-	__webpack_require__(27);
+	__webpack_require__(37);
 	module.exports = Marionette.ItemView.extend({
-	    template: __webpack_require__(28),
+	    template: __webpack_require__(38),
 	    initialize: function(options) {
 	        _.extend(this, options);
 	        this.listenTo(this.model, "change:type", this.setActiveType);
 	    },
 	    behaviors: {
 	        DialogBehavior: {
-	            behaviorClass: __webpack_require__(30)
+	            behaviorClass: __webpack_require__(40)
 	        }
 	    },
 	    onRender: function() {
@@ -730,7 +773,7 @@ webpackJsonp([3],[
 	});
 
 /***/ },
-/* 27 */
+/* 37 */
 /***/ function(module, exports) {
 
 	/* ========================================================================
@@ -1073,18 +1116,18 @@ webpackJsonp([3],[
 
 
 /***/ },
-/* 28 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
-	__webpack_require__(29);
+	__webpack_require__(39);
 
 	var twig = __webpack_require__(21).twig,
-	    template = twig({id:"E:\\Projects\\ConcertoCmsStandardEdition\\vendor\\concerto-cms\\admin-bundle\\src\\Resources\\twigjs\\pages-newPageDialog.html.twig", data:[{"type":"logic","token":{"type":"Twig.logic.type.extends","stack":[{"type":"Twig.expression.type.string","value":"E:\\Projects\\ConcertoCmsStandardEdition\\vendor\\concerto-cms\\admin-bundle\\src\\Resources\\twigjs\\layout-modal.html.twig"}]}},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"title","output":[{"type":"raw","value":"Add a page"}]}},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"body","output":[{"type":"raw","value":"    <div class=\"form-group\">\n        <label for=\"frmNewPage_title\">Title</label>\n        <input type=\"text\" class=\"form-control\" id=\"frmNewPage_title\" placeholder=\"Page title\" name=\"title\" required />\n    </div>\n    <div class=\"form-group\">\n        <label for=\"frmNewPage_slug\">Url</label>\n        <select class=\"form-control\" name=\"parent\">\n            "},{"type":"logic","token":{"type":"Twig.logic.type.for","key_var":null,"value_var":"page","expression":[{"type":"Twig.expression.type.variable","value":"pages","match":["pages"]}],"output":[{"type":"raw","value":"            <option>"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"page","match":["page"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"id"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"</option>\n            "}]}},{"type":"raw","value":"        </select> / <input type=\"text\" class=\"form-control\" id=\"frmNewPage_slug\" placeholder=\"Page title\" name=\"slug\" required />\n    </div>\n    "},{"type":"logic","token":{"type":"Twig.logic.type.if","stack":[{"type":"Twig.expression.type.variable","value":"types","match":["types"]},{"type":"Twig.expression.type.filter","value":"length","match":["|length","length"]},{"type":"Twig.expression.type.number","value":1,"match":["1",null]},{"type":"Twig.expression.type.operator.binary","value":">","precidence":8,"associativity":"leftToRight","operator":">"}],"output":[{"type":"raw","value":"    <div class=\"form-group\">\n        <label>Page type</label>\n        <div class=\"list-group page-types\">\n            "},{"type":"logic","token":{"type":"Twig.logic.type.for","key_var":null,"value_var":"type","expression":[{"type":"Twig.expression.type.variable","value":"types","match":["types"]}],"output":[{"type":"raw","value":"                <a href=\"#\" class=\"list-group-item\" data-type=\""},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"type","match":["type"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"id"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"\">\n                    <h4 class=\"list-group-item-heading\">"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"type","match":["type"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"title"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"</h4>\n                    <p class=\"list-group-item-text\">"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"type","match":["type"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"description"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"</p>\n                </a>\n            "}]}},{"type":"raw","value":"        </div>\n    </div>\n    "}]}},{"type":"raw","value":"\n"}]}},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"footer","output":[{"type":"raw","value":"    <button type=\"submit\" class=\"btn btn-lg btn-success\">Create</button>\n"}]}}], allowInlineIncludes: true});
+	    template = twig({id:"E:\\Projects\\ConcertoCmsStandardEdition\\vendor\\concerto-cms\\admin-bundle\\src\\Resources\\twigjs\\pages-newPageDialog.html.twig", data:[{"type":"logic","token":{"type":"Twig.logic.type.extends","stack":[{"type":"Twig.expression.type.string","value":"E:\\Projects\\ConcertoCmsStandardEdition\\vendor\\concerto-cms\\admin-bundle\\src\\Resources\\twigjs\\layout-modal.html.twig"}]}},{"type":"raw","value":"\r\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"title","output":[{"type":"raw","value":"Add a page"}]}},{"type":"raw","value":"\r\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"body","output":[{"type":"raw","value":"\r\n    <div class=\"form-group\">\r\n        <label for=\"frmNewPage_title\">Title</label>\r\n        <input type=\"text\" class=\"form-control\" id=\"frmNewPage_title\" placeholder=\"Page title\" name=\"title\" required />\r\n    </div>\r\n    <div class=\"form-group\">\r\n        <label for=\"frmNewPage_slug\">Url</label>\r\n        <select class=\"form-control\" name=\"parent\">\r\n            "},{"type":"logic","token":{"type":"Twig.logic.type.for","key_var":null,"value_var":"page","expression":[{"type":"Twig.expression.type.variable","value":"pages","match":["pages"]}],"output":[{"type":"raw","value":"\r\n            <option>"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"page","match":["page"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"id"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"</option>\r\n            "}]}},{"type":"raw","value":"\r\n        </select> / <input type=\"text\" class=\"form-control\" id=\"frmNewPage_slug\" placeholder=\"Page title\" name=\"slug\" required />\r\n    </div>\r\n    "},{"type":"logic","token":{"type":"Twig.logic.type.if","stack":[{"type":"Twig.expression.type.variable","value":"types","match":["types"]},{"type":"Twig.expression.type.filter","value":"length","match":["|length","length"]},{"type":"Twig.expression.type.number","value":1,"match":["1",null]},{"type":"Twig.expression.type.operator.binary","value":">","precidence":8,"associativity":"leftToRight","operator":">"}],"output":[{"type":"raw","value":"\r\n    <div class=\"form-group\">\r\n        <label>Page type</label>\r\n        <div class=\"list-group page-types\">\r\n            "},{"type":"logic","token":{"type":"Twig.logic.type.for","key_var":null,"value_var":"type","expression":[{"type":"Twig.expression.type.variable","value":"types","match":["types"]}],"output":[{"type":"raw","value":"\r\n                <a href=\"#\" class=\"list-group-item\" data-type=\""},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"type","match":["type"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"id"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"\">\r\n                    <h4 class=\"list-group-item-heading\">"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"type","match":["type"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"title"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"</h4>\r\n                    <p class=\"list-group-item-text\">"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"type","match":["type"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"description"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"</p>\r\n                </a>\r\n            "}]}},{"type":"raw","value":"\r\n        </div>\r\n    </div>\r\n    "}]}},{"type":"raw","value":"\r\n\r\n"}]}},{"type":"raw","value":"\r\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"footer","output":[{"type":"raw","value":"\r\n    <button type=\"submit\" class=\"btn btn-lg btn-success\">Create</button>\r\n"}]}}], allowInlineIncludes: true});
 
 	module.exports = function(context) { return template.render(context); }
 
 /***/ },
-/* 29 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var twig = __webpack_require__(21).twig,
@@ -1093,11 +1136,11 @@ webpackJsonp([3],[
 	module.exports = function(context) { return template.render(context); }
 
 /***/ },
-/* 30 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Marionette = __webpack_require__(5);
-	__webpack_require__(27);
+	__webpack_require__(37);
 
 	module.exports = Marionette.Behavior.extend({
 	    initialize: function() {
@@ -1129,7 +1172,7 @@ webpackJsonp([3],[
 	});
 
 /***/ },
-/* 31 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Marionette = __webpack_require__(5);
@@ -1145,50 +1188,14 @@ webpackJsonp([3],[
 	module.exports = Router;
 
 /***/ },
-/* 32 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Backbone = __webpack_require__(3);
-	module.exports = Backbone.Collection.extend({
-	    model: __webpack_require__(33)
-	});
-
-
-/***/ },
-/* 33 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Backbone = __webpack_require__(3);
-	module.exports = Backbone.Model.extend({
-	    idAttribute: "name"
-	});
-
-
-/***/ },
-/* 34 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Backbone = __webpack_require__(3);
-	module.exports = Backbone.Collection.extend({
-	    model: __webpack_require__(18),
-	    comparator: 'id',
-	    getByLanguage: function(lang) {
-	        return this.filter(function(model) {
-	            return model.getLanguage() == lang;
-	        })
-	    }
-	});
-
-
-/***/ },
-/* 35 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Marionette = __webpack_require__(5);
 
 	module.exports = Marionette.ItemView.extend({
 	    tagName: "form",
-	    template: __webpack_require__(36),
+	    template: __webpack_require__(43),
 	    initialize: function(options) {
 	        this.originalModel = options.model;
 	        this.model = options.model.clone();
@@ -1228,13 +1235,13 @@ webpackJsonp([3],[
 
 
 /***/ },
-/* 36 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
-	__webpack_require__(20);
+	__webpack_require__(27);
 
 	var twig = __webpack_require__(21).twig,
-	    template = twig({id:"E:\\Projects\\ConcertoCmsStandardEdition\\vendor\\concerto-cms\\admin-bundle\\src\\Resources\\twigjs\\pages-simplePageView.html.twig", data:[{"type":"logic","token":{"type":"Twig.logic.type.extends","stack":[{"type":"Twig.expression.type.string","value":"E:\\Projects\\ConcertoCmsStandardEdition\\vendor\\concerto-cms\\admin-bundle\\src\\Resources\\twigjs\\layout-page.html.twig"}]}},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"title","output":[{"type":"raw","value":"Pages <small>"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"title","match":["title"]}]},{"type":"raw","value":"</small>"}]}},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"breadcrumb","output":[{"type":"raw","value":"<a href=\"#list/"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"language","match":["language"]}]},{"type":"raw","value":"\">&lt; Back to overview</a>"}]}},{"type":"raw","value":"\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"body","output":[{"type":"raw","value":"<div class=\"container\">\n    <div class=\"form-group\">\n        <label for=\"frmSimplePage_title\">Title</label>\n        <input type=\"text\" name=\"title\" class=\"form-control\" id=\"frmSimplePage_title\" placeholder=\"Page title\">\n    </div>\n    <div class=\"form-group\">\n        <label for=\"frmSimplePage_meta_description\">Meta description</label>\n        <input type=\"text\" name=\"meta_description\" class=\"form-control\" id=\"frmSimplePage_meta_description\" placeholder=\"Meta description\">\n    </div>\n    <div class=\"form-group\">\n        <label for=\"frmSimplePage_content\">Content</label>\n        <textarea id=\"frmSimplePage_content\" name=\"content\" class=\"form-control\"></textarea>\n    </div>\n</div>\n    <hr />\n    <div class=\"container\">\n        <button type=\"submit\" class=\"btn btn-success btn-lg pull-right\"><i class=\"glyphicon glyphicon-ok\"></i> Save</button>\n    </div>\n"}]}}], allowInlineIncludes: true});
+	    template = twig({id:"E:\\Projects\\ConcertoCmsStandardEdition\\vendor\\concerto-cms\\admin-bundle\\src\\Resources\\twigjs\\pages-simplePageView.html.twig", data:[{"type":"logic","token":{"type":"Twig.logic.type.extends","stack":[{"type":"Twig.expression.type.string","value":"E:\\Projects\\ConcertoCmsStandardEdition\\vendor\\concerto-cms\\admin-bundle\\src\\Resources\\twigjs\\layout-page.html.twig"}]}},{"type":"raw","value":"\r\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"title","output":[{"type":"raw","value":"Pages <small>"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"title","match":["title"]}]},{"type":"raw","value":"</small>"}]}},{"type":"raw","value":"\r\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"breadcrumb","output":[{"type":"raw","value":"<a href=\"#list/"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"language","match":["language"]}]},{"type":"raw","value":"\">&lt; Back to overview</a>"}]}},{"type":"raw","value":"\r\n\r\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"body","output":[{"type":"raw","value":"\r\n<div class=\"container\">\r\n    <div class=\"form-group\">\r\n        <label for=\"frmSimplePage_title\">Title</label>\r\n        <input type=\"text\" name=\"title\" class=\"form-control\" id=\"frmSimplePage_title\" placeholder=\"Page title\">\r\n    </div>\r\n    <div class=\"form-group\">\r\n        <label for=\"frmSimplePage_meta_description\">Meta description</label>\r\n        <input type=\"text\" name=\"meta_description\" class=\"form-control\" id=\"frmSimplePage_meta_description\" placeholder=\"Meta description\">\r\n    </div>\r\n    <div class=\"form-group\">\r\n        <label for=\"frmSimplePage_content\">Content</label>\r\n        <textarea id=\"frmSimplePage_content\" name=\"content\" class=\"form-control\"></textarea>\r\n    </div>\r\n</div>\r\n    <hr />\r\n    <div class=\"container\">\r\n        <button type=\"submit\" class=\"btn btn-success btn-lg pull-right\"><i class=\"glyphicon glyphicon-ok\"></i> Save</button>\r\n    </div>\r\n"}]}}], allowInlineIncludes: true});
 
 	module.exports = function(context) { return template.render(context); }
 

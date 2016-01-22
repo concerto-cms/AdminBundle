@@ -23,10 +23,10 @@ var Controller = Marionette.Object.extend({
         var page = this.app.pages.get(path),
             view = Pagetypes.createView(page);
 
-        this.listenTo(view, "save", function() {
+        this.listenTo(view, "save", _.bind(function() {
             page.save();
             this.router.navigate("list/" + page.getLanguage(), {trigger: true});
-        });
+        }, this));
         this.setView(view);
 
     },

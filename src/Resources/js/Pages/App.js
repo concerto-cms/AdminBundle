@@ -8,7 +8,7 @@ var Backbone = require("expose?Backbone!backbone"),
     LanguagesCollection = require("Collection/Languages"),
     PagesCollection = require("Collection/Pages");
 
-var Application = Marionette.Application.extend({
+module.exports = Marionette.Application.extend({
     initialize: function() {
         this.container = new Marionette.Region({
             el: "#pages-container"

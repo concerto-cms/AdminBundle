@@ -1,5 +1,9 @@
-var Navigation = Navigation || {};
-Navigation.EditView = Backbone.View.extend({
+var Backbone = require("backbone"),
+    $ = require("jquery"),
+    _ = require("underscore"),
+    tpl = require("navigation-editView.html.twig");
+
+module.exports = Backbone.View.extend({
     tagName: 'form',
     initialize: function(options) {
         _.extend(this, options);
@@ -23,7 +27,7 @@ Navigation.EditView = Backbone.View.extend({
         '[name=uri]': 'uri'
     },
     render: function() {
-        var content = window.JST["navigation-editView.html.twig"].render(this);
+        var content = tpl(this);
         this.$el.html(content);
         if (!this.model.isNew()) {
             this.setOrderButtonsState();

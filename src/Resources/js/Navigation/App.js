@@ -8,3 +8,5 @@ var Application = Marionette.Application.extend({
         this.controller = new Controller(options);
     }
 });
+
+module.exports = Application;

@@ -1,9 +1,18 @@
-var Navigation = Navigation || {};
-Navigation.Controller = function Navigation_Controller(options) {
+var Backbone = require("backbone"),
+    Routing = global.Routing,
+    LanguagesCollection = require("Collection/Languages"),
+    PagesCollection = require("Collection/Pages"),
+    MenusCollection = require("Collection/Menus"),
+    Router = require("./Router"),
+    _ = require("underscore"),
+    $ = require("jquery"),
+    ListView = require("./ListView");
+
+var Controller = function Navigation_Controller(options) {
     _.extend(this, options);
     $.when(this.loadLanguages(), this.loadMenus(), this.loadPages())
     .done(_.bind(function() {
-            this.router = new Navigation.Router();
+            this.router = new Router();
             this.listenTo(this.router, "route:index", this.indexAction);
             this.listenTo(this.router, "route:list", this.listAction);
             Backbone.history.start();
@@ -11,20 +20,20 @@ Navigation.Controller = function Navigation_Controller(options) {
 
 
 };
-_.extend(Navigation.Controller.prototype, Backbone.Events);
-_.extend(Navigation.Controller.prototype, {
+_.extend(Controller.prototype, Backbone.Events);
+_.extend(Controller.prototype, {
     loadLanguages: function() {
         var that = this;
         return $.getJSON(Routing.generate("concerto_cms_core_languages_rest"))
             .done(function(data) {
-                that.languages = new Collection.Languages(_.values(data));
+                that.languages = new LanguagesCollection(_.values(data));
             });
     },
     loadPages: function() {
         var that = this;
         return $.getJSON(Routing.generate("concerto_cms_core_pages_rest"))
             .done(function(data) {
-                that.pages = new Collection.Pages(data);
+                that.pages = new PagesCollection(data);
             })
 
     },
@@ -32,7 +41,7 @@ _.extend(Navigation.Controller.prototype, {
         var that = this;
         return $.getJSON(Routing.generate("concerto_cms_core_navigation_rest"))
             .done(function(data) {
-                that.menus = new Collection.Menus(data);
+                that.menus = new MenusCollection(data);
             })
 
     },
@@ -42,7 +51,7 @@ _.extend(Navigation.Controller.prototype, {
         this.router.navigate([menu, language].join('/'), {trigger: true});
     },
     listAction: function(menu, lang) {
-        var view = new Navigation.ListView({
+        var view = new ListView({
                 collection: this.menus,
                 pages: this.pages,
                 languages: this.languages,
@@ -63,3 +72,4 @@ _.extend(Navigation.Controller.prototype, {
     }
 });
 
+module.exports = Controller;
