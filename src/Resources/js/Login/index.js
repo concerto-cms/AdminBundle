@@ -1,3 +1,6 @@
-var Controller = require("./Controller");
+var container = $("#login-container"),
+    LoginView = require("./LoginView");
 
-var controller = global.controller = new Controller();
+global.view = new LoginView({
+    el: container
+});
