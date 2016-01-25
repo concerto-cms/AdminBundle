@@ -4,11 +4,12 @@ var webpack = require("webpack");
 module.exports = {
     entry: {
         base: [
-            "jquery",
-            "underscore",
+            "expose?$!expose?jQuery!jquery",
+            "expose?_!underscore",
             "backbone",
             "backbone.stickit",
-            "backbone.marionette"
+            "backbone.marionette",
+            "bootstrap/js/dropdown"
         ],
         pages: "Pages/index",
         login: "Login/index",
@@ -44,6 +45,7 @@ module.exports = {
             path.resolve(__dirname, "src/Resources/twigjs")
         ],
         alias: {
+            'marionette': 'backbone.marionette'
         }
     },
     externals: {
@@ -53,14 +55,6 @@ module.exports = {
         new webpack.ResolverPlugin(
             new webpack.ResolverPlugin.DirectoryDescriptionFilePlugin("bower.json", ["main"])
         ),
-        new webpack.optimize.CommonsChunkPlugin("base", "base.js"),
-        new webpack.ProvidePlugin({
-            "Backbone": "backbone"
-//            "window.jQuery": "jquery",
-//            jQuery: "jquery",
-//            $: "jquery",
-//            app: "app",
-//            _: "underscore"
-        })
+        new webpack.optimize.CommonsChunkPlugin("base", "base.js")
     ]
 };

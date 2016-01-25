@@ -1,11 +1,13 @@
-webpackJsonp([3],[
+webpackJsonp([2],[
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(global) {var Application = __webpack_require__(32);
-
+	/* WEBPACK VAR INJECTION */(function(global) {var Application = __webpack_require__(13);
 	var app = global.app = new Application();
-	global.SimplePageView = __webpack_require__(44);
+
+	app.start({
+	    el: document.getElementById("navigation-container")
+	});
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
@@ -21,8 +23,104 @@ webpackJsonp([3],[
 /* 10 */,
 /* 11 */,
 /* 12 */,
-/* 13 */,
-/* 14 */,
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Marionette = __webpack_require__(8),
+	    Controller = __webpack_require__(14);
+
+	var Application = Marionette.Application.extend({
+	    initialize: function() {
+	    },
+	    onStart: function(options) {
+	        this.controller = new Controller(options);
+	    }
+	});
+
+	module.exports = Application;
+
+/***/ },
+/* 14 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(global) {var Backbone = __webpack_require__(6),
+	    Routing = global.Routing,
+	    LanguagesCollection = __webpack_require__(15),
+	    PagesCollection = __webpack_require__(17),
+	    MenusCollection = __webpack_require__(19),
+	    Router = __webpack_require__(21),
+	    _ = __webpack_require__(5),
+	    $ = __webpack_require__(3),
+	    ListView = __webpack_require__(22);
+
+	var Controller = function Navigation_Controller(options) {
+	    _.extend(this, options);
+	    $.when(this.loadLanguages(), this.loadMenus(), this.loadPages())
+	    .done(_.bind(function() {
+	            this.router = new Router();
+	            this.listenTo(this.router, "route:index", this.indexAction);
+	            this.listenTo(this.router, "route:list", this.listAction);
+	            Backbone.history.start();
+	    }, this));
+
+
+	};
+	_.extend(Controller.prototype, Backbone.Events);
+	_.extend(Controller.prototype, {
+	    loadLanguages: function() {
+	        var that = this;
+	        return $.getJSON(Routing.generate("concerto_cms_core_languages_rest"))
+	            .done(function(data) {
+	                that.languages = new LanguagesCollection(_.values(data));
+	            });
+	    },
+	    loadPages: function() {
+	        var that = this;
+	        return $.getJSON(Routing.generate("concerto_cms_core_pages_rest"))
+	            .done(function(data) {
+	                that.pages = new PagesCollection(data);
+	            })
+
+	    },
+	    loadMenus: function() {
+	        var that = this;
+	        return $.getJSON(Routing.generate("concerto_cms_core_navigation_rest"))
+	            .done(function(data) {
+	                that.menus = new MenusCollection(data);
+	            })
+
+	    },
+	    indexAction: function() {
+	        var menu = this.menus.first().get('name'),
+	            language = this.languages.first().id;
+	        this.router.navigate([menu, language].join('/'), {trigger: true});
+	    },
+	    listAction: function(menu, lang) {
+	        var view = new ListView({
+	                collection: this.menus,
+	                pages: this.pages,
+	                languages: this.languages,
+	                language: lang,
+	                menu: menu
+	            });
+	        this.setView(view);
+	    },
+	    setView: function(view) {
+	        if (this.view) {
+	            this.stopListening(this.view);
+	            this.view.remove();
+	        }
+	        this.view = view;
+	        $(this.el).html("");
+	        view.$el.appendTo(this.el);
+	        view.render();
+	    }
+	});
+
+	module.exports = Controller;
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+
+/***/ },
 /* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -94,12 +192,263 @@ webpackJsonp([3],[
 
 
 /***/ },
-/* 19 */,
-/* 20 */,
-/* 21 */,
-/* 22 */,
-/* 23 */,
-/* 24 */,
+/* 19 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Backbone = __webpack_require__(6);
+
+	module.exports = Backbone.Collection.extend({
+	    model: __webpack_require__(20),
+
+	    getMenu: function(name, language) {
+	        return this.get(name + "/" + language);
+	    }
+	});
+
+/***/ },
+/* 20 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Backbone = __webpack_require__(6);
+	module.exports = Backbone.Model.extend({
+	    defaults: {
+	    },
+	    set: function(attrs, options) {
+	        if (typeof attrs == "object" && attrs.id) {
+	            arguments[0].id = attrs.id.replace("/cms/menu/", "");
+	        }
+	        Backbone.Model.prototype.set.apply(this, arguments);
+	    },
+
+	    url: function() {
+	        return Routing.generate('concerto_cms_core_navigation_rest', {path: this.id});
+	    },
+	    getChildren: function() {
+	        if (this.collection) {
+	            return this.collection.where({parent: this.get('id')});
+	        }
+	    }
+	});
+
+
+/***/ },
+/* 21 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Backbone = __webpack_require__(6);
+
+	module.exports = Backbone.Router.extend({
+	    routes: {
+	        "": "index",
+	        ":menu/:lang": "list"
+	    }
+	});
+
+
+/***/ },
+/* 22 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Backbone = __webpack_require__(6),
+	    EditView = __webpack_require__(23),
+	    _ = __webpack_require__(5),
+	    $ = __webpack_require__(3),
+	    Menu = __webpack_require__(20),
+	    tpl = __webpack_require__(30);
+
+	module.exports = Backbone.View.extend({
+	    initialize: function(options) {
+	        _.extend(this, options);
+	    },
+	    render: function() {
+	        var menu = this.collection.getMenu(this.menu, this.language),
+	            content = tpl({
+	            menu: this.collection.get(this.menu),   // main-menu
+	            languages: this.languages.toJSON(),
+	            lang: this.language,
+	            root: menu                              // main-menu/en
+	        });
+	        this.$el.html(content);
+	    },
+	    events: {
+	        "click .list-group a.item-add": "addMenu",
+	        "click .list-group a.item-edit": "editMenu"
+	    },
+	    editMenu: function(e) {
+	        var id = $(e.currentTarget).data("id"),
+	            collection = this.collection,
+	            model = collection.get(id),
+	            view;
+	        view = new EditView({
+	            model: model,
+	            pages: this.pages.getByLanguage(this.language),
+	            listEl: e.currentTarget
+	        });
+	        this.setActive(e.currentTarget);
+	        this.setView(view);
+	        this.listenTo(view, "save", _.bind(function() {
+	            var that = this;
+	            model.save().done(function() {
+	                that.render();
+	            });
+	        }, this));
+	        this.listenTo(view, "delete", function() {
+	            view.remove();
+	            this.render();
+	        });
+	    },
+	    addMenu: function(e) {
+	        var parent = $(e.currentTarget).data("parent"),
+	            model,
+	            view,
+	            that = this;
+	        model = new Menu({
+	            parent: parent
+	        });
+	        view = new EditView({
+	            model: model,
+	            pages: this.pages.getByLanguage(this.language)
+	        });
+	        this.setActive(e.currentTarget);
+	        this.setView(view);
+	        this.listenTo(view, "save", _.bind(function() {
+	            var collection = this.collection;
+	            $.ajax({
+	                type: 'POST',
+	                url: Routing.generate('concerto_cms_core_navigation_rest', {path: parent}),
+	                data: JSON.stringify (model.toJSON()),
+	                contentType: "application/json",
+	                dataType: 'json'
+	            })
+	                .done(function(data) {
+	                    model.set(data);
+	                    collection.add(model);
+	                    that.render();
+	                });
+
+	        }, this));
+	    },
+	    setActive: function(el) {
+	        this.$('.list-group a.list-group-item.active').removeClass("active");
+	        $(el).addClass("active");
+	    },
+	    setView: function(view) {
+	        var container = this.$("#form-container");
+	        if (this.view) {
+	            this.stopListening(this.view);
+	            this.view.remove();
+	        }
+	        this.view = view;
+	        container.html("");
+	        view.$el.appendTo(container);
+	        view.render();
+	    }
+	});
+
+
+/***/ },
+/* 23 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Backbone = __webpack_require__(6),
+	    $ = __webpack_require__(3),
+	    _ = __webpack_require__(5),
+	    tpl = __webpack_require__(24);
+
+	module.exports = Backbone.View.extend({
+	    tagName: 'form',
+	    initialize: function(options) {
+	        _.extend(this, options);
+	        this.model = options.model;
+	    },
+	    events: {
+	        'submit': 'onSubmit',
+	        'click .move-up': 'moveUp',
+	        'click .move-down': 'moveDown',
+	        'click .delete': 'delete'
+	    },
+	    onSubmit: function(e) {
+	        e.preventDefault();
+	        this.save();
+	    },
+	    save: function() {
+	        this.trigger("save");
+	    },
+	    bindings: {
+	        '[name=label]': 'label',
+	        '[name=uri]': 'uri'
+	    },
+	    render: function() {
+	        var content = tpl(this);
+	        this.$el.html(content);
+	        if (!this.model.isNew()) {
+	            this.setOrderButtonsState();
+	        }
+	        this.stickit();
+	    },
+	    setOrderButtonsState: function() {
+	        var $el = $(this.listEl),
+	            $up = this.$(".move-up"),
+	            $down = this.$(".move-down");
+	        if ($el.next().next().hasClass("item-add")) {
+	            $down.attr("disabled", "disabled").addClass("disabled");
+	        } else {
+	            $down.removeAttr("disabled").removeClass("disabled");
+	        }
+	        if ($el.prev().length == 0) {
+	            $up.attr("disabled", "disabled").addClass("disabled");
+	        } else {
+	            $up.removeAttr("disabled").removeClass("disabled");
+	        }
+	    },
+	    moveUp: function() {
+	        var $el = $(this.listEl),
+	            target = $el.prev().prev(),
+	            prev = target.data("id"),
+	            options = $el.next();
+
+	        this.postReorder($(this.listEl).data("id"), prev);
+	        target.before(this.listEl).before(options);
+	        this.setOrderButtonsState();
+	    },
+	    moveDown: function() {
+	        var $el = $(this.listEl),
+	            target = $el.next().next().next().next(),
+	            next = target.data("id"),
+	            options = $el.next();
+
+	        this.postReorder($el.next().next().data("id"), $(this.listEl).data("id"));
+	        target.before(this.listEl).before(options);
+	        this.setOrderButtonsState();
+	    },
+	    postReorder: function(id, before) {
+	        $.ajax({
+	            type: 'PUT',
+	            url: Routing.generate('concerto_cms_core_navigation_rest', {path: id}),
+	            data: JSON.stringify ({
+	                orderBefore: before
+	            }),
+	            contentType: "application/json",
+	            dataType: 'json'
+	        });
+	    },
+	    delete: function() {
+	        this.model.destroy();
+	        this.trigger("delete");
+	    }
+	});
+
+
+/***/ },
+/* 24 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var twig = __webpack_require__(25).twig,
+	    template = twig({id:"E:\\Projects\\ConcertoCmsStandardEdition\\vendor\\concerto-cms\\admin-bundle\\src\\Resources\\twigjs\\navigation-editView.html.twig", data:[{"type":"raw","value":"<div class=\"panel panel-primary\">\n    "},{"type":"logic","token":{"type":"Twig.logic.type.if","stack":[{"type":"Twig.expression.type.variable","value":"model","match":["model"]},{"type":"Twig.expression.type.key.period","key":"id"}],"output":[{"type":"raw","value":"        <div class=\"panel-heading\">"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"model","match":["model"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"label"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"</div>\n    "}]}},{"type":"logic","token":{"type":"Twig.logic.type.else","match":["else"],"output":[{"type":"raw","value":"        <div class=\"panel-heading\">New nemu</div>\n    "}]}},{"type":"raw","value":"    <div class=\"panel-body\">\n        <div class=\"form-group\">\n            <label for=\"frmEditView_label\">Label</label>\n            <input type=\"text\" name=\"label\" class=\"form-control\" id=\"frmEditView_label\" placeholder=\"Menu label\">\n        </div>\n        <div class=\"form-group\">\n            <label for=\"frmEditView_page\">Page</label>\n            <select class=\"form-control\" name=\"uri\">\n                <option value=\"#\">No link</option>\n                "},{"type":"logic","token":{"type":"Twig.logic.type.for","key_var":null,"value_var":"page","expression":[{"type":"Twig.expression.type.variable","value":"pages","match":["pages"]}],"output":[{"type":"raw","value":"                    <option value=\""},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"page","match":["page"]},{"type":"Twig.expression.type.key.period","key":"id"}]},{"type":"raw","value":"\">"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"page","match":["page"]},{"type":"Twig.expression.type.key.period","key":"id"}]},{"type":"raw","value":" ("},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"page","match":["page"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"title"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":")</option>\n                "}]}},{"type":"raw","value":"            </select>\n        </div>\n        <hr />\n        <div class=\"text-right\">\n            "},{"type":"logic","token":{"type":"Twig.logic.type.if","stack":[{"type":"Twig.expression.type.variable","value":"model","match":["model"]},{"type":"Twig.expression.type.key.period","key":"isNew","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]},{"type":"Twig.expression.type.bool","value":false},{"type":"Twig.expression.type.operator.binary","value":"==","precidence":9,"associativity":"leftToRight","operator":"=="}],"output":[{"type":"raw","value":"            <div class=\"btn-group pull-left\" role=\"group\" aria-label=\"...\">\n                <button type=\"button\" class=\"btn btn-default move-up\"><i class=\"glyphicon glyphicon-arrow-up\"></i></button>\n                <button type=\"button\" class=\"btn btn-default move-down\"><i class=\"glyphicon glyphicon-arrow-down\"></i></button>\n            </div>\n            "}]}},{"type":"raw","value":"\n            <button type=\"button\" class=\"btn btn-danger delete\">Delete</button>\n            <button type=\"submit\" class=\"btn btn-success\">Save</button>\n        </div>\n    </div>\n</div>\n"}], allowInlineIncludes: true});
+
+	module.exports = function(context) { return template.render(context); }
+
+/***/ },
 /* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -467,771 +816,22 @@ webpackJsonp([3],[
 
 
 /***/ },
-/* 30 */,
+/* 30 */
+/***/ function(module, exports, __webpack_require__) {
+
+	__webpack_require__(31);
+
+	var twig = __webpack_require__(25).twig,
+	    template = twig({id:"E:\\Projects\\ConcertoCmsStandardEdition\\vendor\\concerto-cms\\admin-bundle\\src\\Resources\\twigjs\\navigation-listView.html.twig", data:[{"type":"logic","token":{"type":"Twig.logic.type.extends","stack":[{"type":"Twig.expression.type.string","value":"E:\\Projects\\ConcertoCmsStandardEdition\\vendor\\concerto-cms\\admin-bundle\\src\\Resources\\twigjs\\layout-page.html.twig"}]}},{"type":"logic","token":{"type":"Twig.logic.type.import","expression":"_self","contextName":"macros","stack":[{"type":"Twig.expression.type.variable","value":"_self","match":["_self"]}]}},{"type":"raw","value":"\n"},{"type":"logic","token":{"type":"Twig.logic.type.macro","macroName":"renderList","parameters":["root"],"output":[{"type":"raw","value":"    "},{"type":"logic","token":{"type":"Twig.logic.type.import","expression":"_self","contextName":"macros","stack":[{"type":"Twig.expression.type.variable","value":"_self","match":["_self"]}]}},{"type":"raw","value":"    "},{"type":"logic","token":{"type":"Twig.logic.type.set","key":"items","expression":[{"type":"Twig.expression.type.variable","value":"root","match":["root"]},{"type":"Twig.expression.type.key.period","key":"getChildren","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]}},{"type":"raw","value":"    <div class=\"list-group\">\n        "},{"type":"logic","token":{"type":"Twig.logic.type.for","key_var":null,"value_var":"menu","expression":[{"type":"Twig.expression.type.variable","value":"items","match":["items"]}],"output":[{"type":"raw","value":"            <a href=\"javascript:void(0)\" data-id=\""},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"menu","match":["menu"]},{"type":"Twig.expression.type.key.period","key":"id"}]},{"type":"raw","value":"\" class=\"list-group-item item-edit\">\n                <h4 class=\"list-group-item-heading\">"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"menu","match":["menu"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"label"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"</h4>\n                <p class=\"list-group-item-text\">"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"menu","match":["menu"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"uri"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"</p>\n            </a>\n            "},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"macros","match":["macros"]},{"type":"Twig.expression.type.key.period","key":"renderList","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.variable","value":"menu","match":["menu"]},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"\n\n        "}]}},{"type":"raw","value":"        <a href=\"javascript:void(0)\" class=\"list-group-item item-add\" data-parent=\""},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"root","match":["root"]},{"type":"Twig.expression.type.key.period","key":"id"}]},{"type":"raw","value":"\"><i class=\"glyphicon glyphicon-plus\"></i> New menu here...</a>\n    </div>\n"}]}},{"type":"raw","value":"\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"title","output":[{"type":"raw","value":"Navigation <small>"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"menu","match":["menu"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"label"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"</small>"}]}},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"body","output":[{"type":"raw","value":"<div class=\"container\">\n    <ul class=\"nav nav-pills\">\n        "},{"type":"logic","token":{"type":"Twig.logic.type.for","key_var":null,"value_var":"language","expression":[{"type":"Twig.expression.type.variable","value":"languages","match":["languages"]}],"output":[{"type":"raw","value":"            <li role=\"presentation\" class=\""},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"language","match":["language"]},{"type":"Twig.expression.type.key.period","key":"name"},{"type":"Twig.expression.type.variable","value":"lang","match":["lang"]},{"type":"Twig.expression.type.operator.binary","value":"==","precidence":9,"associativity":"leftToRight","operator":"=="},{"type":"Twig.expression.type.string","value":"active"},{"type":"Twig.expression.type.string","value":""},{"type":"Twig.expression.type.operator.binary","value":"?","precidence":16,"associativity":"rightToLeft","operator":"?"}]},{"type":"raw","value":"\">\n                <a href=\"#/"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"menu","match":["menu"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"name"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"/"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"language","match":["language"]},{"type":"Twig.expression.type.key.period","key":"name"}]},{"type":"raw","value":"\">"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"language","match":["language"]},{"type":"Twig.expression.type.key.period","key":"description"}]},{"type":"raw","value":"</a>\n            </li>\n        "}]}},{"type":"raw","value":"    </ul>\n    <br />\n    <div class=\"row\">\n        <div class=\"col-sm-6 navigation-list\">\n            "},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"macros","match":["macros"]},{"type":"Twig.expression.type.key.period","key":"renderList","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.variable","value":"root","match":["root"]},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"\n        </div>\n        <div class=\"col-sm-6\" id=\"form-container\">\n            \n        </div>\n    </div>\n    "},{"type":"raw","value":"\n</div>\n"}]}}], allowInlineIncludes: true});
+
+	module.exports = function(context) { return template.render(context); }
+
+/***/ },
 /* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var twig = __webpack_require__(25).twig,
 	    template = twig({id:"E:\\Projects\\ConcertoCmsStandardEdition\\vendor\\concerto-cms\\admin-bundle\\src\\Resources\\twigjs\\layout-page.html.twig", data:[{"type":"raw","value":"<div class=\"page-header\">\n    <div class=\"container\">\n        <h1>"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"title","output":[]}},{"type":"raw","value":"</h1>\n\n        "},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"breadcrumb","output":[]}},{"type":"raw","value":"        "},{"type":"logic","token":{"type":"Twig.logic.type.if","stack":[{"type":"Twig.expression.type._function","fn":"block","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"buttons"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]},{"type":"Twig.expression.type.test","filter":"empty","modifier":"not"}],"output":[{"type":"raw","value":"        <div class=\"btn-group pull-right\" role=\"group\">\n            "},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"buttons","output":[]}},{"type":"raw","value":"        </div>\n        "}]}},{"type":"raw","value":"    </div>\n</div>\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"body","output":[]}}], allowInlineIncludes: true});
-
-	module.exports = function(context) { return template.render(context); }
-
-/***/ },
-/* 32 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(global) {var Backbone = __webpack_require__(33),
-	    Marionette = __webpack_require__(8),
-	    _ = __webpack_require__(4),
-	    $ = __webpack_require__(2),
-	    Routing = global.Routing,
-	    Controller = __webpack_require__(34),
-	    Router = __webpack_require__(43),
-	    LanguagesCollection = __webpack_require__(15),
-	    PagesCollection = __webpack_require__(17);
-
-	module.exports = Marionette.Application.extend({
-	    initialize: function() {
-	        this.container = new Marionette.Region({
-	            el: "#pages-container"
-	        });
-
-	        this.controller = new Controller({
-	            app: this
-	        });
-	        this.router = new Router({
-	            controller: this.controller
-	        });
-	        this.pagetypes = __webpack_require__(35);
-	    },
-	    onStart: function() {
-	        $.when(this.loadLanguages(), this.loadPages())
-	            .done(_.bind(function() {
-	                Backbone.history.start();
-	            }, this));
-	    },
-	    loadLanguages: function() {
-	        var that = this;
-	        return $.getJSON(Routing.generate("concerto_cms_core_languages_rest"))
-	            .done(function(data) {
-	                that.languages = new LanguagesCollection(_.values(data));
-	            });
-	    },
-	    loadPages: function() {
-	        var that = this;
-	        return $.getJSON(Routing.generate("concerto_cms_core_pages_rest"))
-	            .done(function(data) {
-	                that.pages = new PagesCollection(data);
-	            });
-
-	    }
-
-	});
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
-
-/***/ },
-/* 33 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(global) {module.exports = global["Backbone"] = __webpack_require__(6);
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
-
-/***/ },
-/* 34 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var _ = __webpack_require__(5),
-	    Marionette = __webpack_require__(8),
-	    Pagetypes = __webpack_require__(35),
-	    ListView = __webpack_require__(36);
-
-	var Controller = Marionette.Object.extend({
-	    initialize: function(options){
-	        _.extend(this, options);
-
-	    },
-	    index: function() {
-	        this.app.router.navigate("list/" + this.app.languages.first().id, {trigger: true});
-	    },
-	    list: function(lang) {
-	        var view = new ListView({
-	            collection: this.app.pages,
-	            languages: this.app.languages,
-	            language: lang
-	        });
-	        this.setView(view);
-	    },
-	    edit: function(path) {
-	        var page = this.app.pages.get(path),
-	            view = Pagetypes.createView(page);
-
-	        this.listenTo(view, "save", _.bind(function() {
-	            page.save();
-	            this.router.navigate("list/" + page.getLanguage(), {trigger: true});
-	        }, this));
-	        this.setView(view);
-
-	    },
-	    setView: function(view) {
-	        this.app.container.show(view);
-	    }
-
-	});
-
-	module.exports = Controller;
-
-/***/ },
-/* 35 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Backbone = __webpack_require__(6);
-	module.exports = {
-	    types: new Backbone.Collection([], {
-	        model: Backbone.Model
-	    }),
-	    addType: function(name, attrs) {
-	        var model = new Backbone.Model(attrs);
-	        model.set('id', name);
-	        this.types.add(model);
-	    },
-	    getTypes: function() {
-	        return this.types.models;
-	    },
-	    createView: function(model) {
-	        var type = this.getType(model.get('type')),
-	            view;
-	        if (!type) {
-	            type = this.getType("simplepage");
-	        }
-	        view = type.get('view');
-	        return new view({
-	            model: model
-	        });
-	    },
-	    getType: function(name) {
-	        return this.types.get(name);
-	    }
-	};
-
-
-/***/ },
-/* 36 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Marionette = __webpack_require__(8),
-	    pagetypes = __webpack_require__(35),
-	    _ = __webpack_require__(5),
-	    PageModel = __webpack_require__(18);
-
-	    module.exports = Marionette.ItemView.extend({
-	        template: __webpack_require__(37),
-	        initialize: function(options) {
-	            _.extend(this, options);
-	        },
-	        serializeData: function() {
-	            return {
-	                pages: this.getPages(),
-	                languages: this.languages.toJSON(),
-	                lang: this.language,
-	                types: pagetypes.types.pluck("id")
-	            }
-	        },
-	        events: {
-	            "click .add-page": "addPage"
-	        },
-	        addPage: function() {
-	            //require.ensure("./NewPageDialog", _.bind(function(require) {
-	                var NewPageDialog = __webpack_require__(38);
-	                var model = new PageModel({
-	                        parent: this.getPages()[0].get('id')
-	                    }),
-	                    dialog = new NewPageDialog({
-	                        pages: this.getPages(),
-	                        types: pagetypes.getTypes(),
-	                        model: model
-	                    }),
-	                    that = this;
-
-
-	                this.listenTo(dialog, "close", function() {
-	                    this.stopListening(dialog);
-	                });
-	                this.listenTo(dialog, "save", function(model) {
-	                    that.collection.add(model);
-	                    that.render();
-	                });
-	                dialog.triggerMethod("show");
-	            //}, this));
-	        },
-
-	        getPages: function() {
-	            return this.collection.getByLanguage(this.language);
-	        }
-	});
-
-
-/***/ },
-/* 37 */
-/***/ function(module, exports, __webpack_require__) {
-
-	__webpack_require__(31);
-
-	var twig = __webpack_require__(25).twig,
-	    template = twig({id:"E:\\Projects\\ConcertoCmsStandardEdition\\vendor\\concerto-cms\\admin-bundle\\src\\Resources\\twigjs\\pages-listView.html.twig", data:[{"type":"logic","token":{"type":"Twig.logic.type.extends","stack":[{"type":"Twig.expression.type.string","value":"E:\\Projects\\ConcertoCmsStandardEdition\\vendor\\concerto-cms\\admin-bundle\\src\\Resources\\twigjs\\layout-page.html.twig"}]}},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"title","output":[{"type":"raw","value":"Pages <small>Overview</small>"}]}},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"buttons","output":[{"type":"raw","value":"    <button type=\"button\" class=\"btn btn-info btn-sm add-page\">Add a page</button>\n"}]}},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"body","output":[{"type":"raw","value":"<div class=\"container\">\n    <ul class=\"nav nav-pills\">\n        "},{"type":"logic","token":{"type":"Twig.logic.type.for","key_var":null,"value_var":"language","expression":[{"type":"Twig.expression.type.variable","value":"languages","match":["languages"]}],"output":[{"type":"raw","value":"            <li role=\"presentation\" class=\""},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"language","match":["language"]},{"type":"Twig.expression.type.key.period","key":"name"},{"type":"Twig.expression.type.variable","value":"lang","match":["lang"]},{"type":"Twig.expression.type.operator.binary","value":"==","precidence":9,"associativity":"leftToRight","operator":"=="},{"type":"Twig.expression.type.string","value":"active"},{"type":"Twig.expression.type.string","value":""},{"type":"Twig.expression.type.operator.binary","value":"?","precidence":16,"associativity":"rightToLeft","operator":"?"}]},{"type":"raw","value":"\">\n                <a href=\"#/list/"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"language","match":["language"]},{"type":"Twig.expression.type.key.period","key":"name"}]},{"type":"raw","value":"\">"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"language","match":["language"]},{"type":"Twig.expression.type.key.period","key":"description"}]},{"type":"raw","value":"</a>\n            </li>\n        "}]}},{"type":"raw","value":"    </ul>\n    <br />\n    <div class=\"list-group\">\n        "},{"type":"logic","token":{"type":"Twig.logic.type.for","key_var":null,"value_var":"page","expression":[{"type":"Twig.expression.type.variable","value":"pages","match":["pages"]}],"output":[{"type":"raw","value":"            "},{"type":"logic","token":{"type":"Twig.logic.type.if","stack":[{"type":"Twig.expression.type.variable","value":"page","match":["page"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"type"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]},{"type":"Twig.expression.type.variable","value":"types","match":["types"]},{"type":"Twig.expression.type.operator.binary","value":"in","precidence":20,"associativity":"leftToRight","operator":"in"}],"output":[{"type":"raw","value":"            <a href=\"#edit/"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"page","match":["page"]},{"type":"Twig.expression.type.key.period","key":"id"}]},{"type":"raw","value":"\" class=\"list-group-item\">\n                <h4 class=\"list-group-item-heading\">"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"page","match":["page"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"title"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"</h4>\n                <p class=\"list-group-item-text\">"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"page","match":["page"]},{"type":"Twig.expression.type.key.period","key":"id"}]},{"type":"raw","value":"</p>\n            </a>\n            "}]}},{"type":"raw","value":"        "}]}},{"type":"raw","value":"    </div>\n</div>\n"}]}}], allowInlineIncludes: true});
-
-	module.exports = function(context) { return template.render(context); }
-
-/***/ },
-/* 38 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Marionette = __webpack_require__(8),
-	    _ = __webpack_require__(5);
-
-	__webpack_require__(39);
-	module.exports = Marionette.ItemView.extend({
-	    template: __webpack_require__(40),
-	    initialize: function(options) {
-	        _.extend(this, options);
-	        this.listenTo(this.model, "change:type", this.setActiveType);
-	    },
-	    behaviors: {
-	        DialogBehavior: {
-	            behaviorClass: __webpack_require__(42)
-	        }
-	    },
-	    onRender: function() {
-	        this.setActiveType();
-	        this.stickit();
-	    },
-	    bindings: {
-	        '[name=slug]': 'slug',
-	        '[name=title]': 'title',
-	        '[name=parent]': 'parent'
-	    },
-	    events: {
-	        'click .page-types a': 'onClickPagetype',
-	        'submit form': 'onSubmit'
-	    },
-	    onClickPagetype: function(e) {
-	        var type = $(e.currentTarget).data("type");
-	        this.model.set('type', type);
-	        e.preventDefault();
-	    },
-	    onSubmit: function(e) {
-	        e.preventDefault();
-	        this.save();
-	    },
-	    save: function() {
-	        var that = this,
-	            model = this.model.toJSON(),
-	            type = model.type,
-	            parent = model.parent;
-	        delete model.type;
-	        delete model.parent;
-
-	        window.dialogModel = model;
-	        $.ajax({
-	            type: 'POST',
-	            url: Routing.generate('concerto_cms_core_pages_rest_get', {path: parent}),
-	            data: JSON.stringify ({
-	                type: type,
-	                page: model
-	            }),
-	            contentType: "application/json",
-	            dataType: 'json'
-	        })
-	        .done(function(data) {
-	            that.model.set(data);
-	            that.triggerMethod("hide");
-	            that.trigger("save", that.model);
-	        });
-
-
-	    },
-	    setActiveType: function() {
-	        var type = this.model.get('type'),
-	            el;
-
-	        try {
-	            el = this.$(".page-types [data-type=" + type + "]");
-	            el.addClass("active").siblings().removeClass("active");
-	        } catch (e) {
-	            this.$(".page-types a.active").removeClass("active");
-	        }
-	    }
-	});
-
-/***/ },
-/* 39 */
-/***/ function(module, exports) {
-
-	/* ========================================================================
-	 * Bootstrap: modal.js v3.3.6
-	 * http://getbootstrap.com/javascript/#modals
-	 * ========================================================================
-	 * Copyright 2011-2015 Twitter, Inc.
-	 * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
-	 * ======================================================================== */
-
-
-	+function ($) {
-	  'use strict';
-
-	  // MODAL CLASS DEFINITION
-	  // ======================
-
-	  var Modal = function (element, options) {
-	    this.options             = options
-	    this.$body               = $(document.body)
-	    this.$element            = $(element)
-	    this.$dialog             = this.$element.find('.modal-dialog')
-	    this.$backdrop           = null
-	    this.isShown             = null
-	    this.originalBodyPad     = null
-	    this.scrollbarWidth      = 0
-	    this.ignoreBackdropClick = false
-
-	    if (this.options.remote) {
-	      this.$element
-	        .find('.modal-content')
-	        .load(this.options.remote, $.proxy(function () {
-	          this.$element.trigger('loaded.bs.modal')
-	        }, this))
-	    }
-	  }
-
-	  Modal.VERSION  = '3.3.6'
-
-	  Modal.TRANSITION_DURATION = 300
-	  Modal.BACKDROP_TRANSITION_DURATION = 150
-
-	  Modal.DEFAULTS = {
-	    backdrop: true,
-	    keyboard: true,
-	    show: true
-	  }
-
-	  Modal.prototype.toggle = function (_relatedTarget) {
-	    return this.isShown ? this.hide() : this.show(_relatedTarget)
-	  }
-
-	  Modal.prototype.show = function (_relatedTarget) {
-	    var that = this
-	    var e    = $.Event('show.bs.modal', { relatedTarget: _relatedTarget })
-
-	    this.$element.trigger(e)
-
-	    if (this.isShown || e.isDefaultPrevented()) return
-
-	    this.isShown = true
-
-	    this.checkScrollbar()
-	    this.setScrollbar()
-	    this.$body.addClass('modal-open')
-
-	    this.escape()
-	    this.resize()
-
-	    this.$element.on('click.dismiss.bs.modal', '[data-dismiss="modal"]', $.proxy(this.hide, this))
-
-	    this.$dialog.on('mousedown.dismiss.bs.modal', function () {
-	      that.$element.one('mouseup.dismiss.bs.modal', function (e) {
-	        if ($(e.target).is(that.$element)) that.ignoreBackdropClick = true
-	      })
-	    })
-
-	    this.backdrop(function () {
-	      var transition = $.support.transition && that.$element.hasClass('fade')
-
-	      if (!that.$element.parent().length) {
-	        that.$element.appendTo(that.$body) // don't move modals dom position
-	      }
-
-	      that.$element
-	        .show()
-	        .scrollTop(0)
-
-	      that.adjustDialog()
-
-	      if (transition) {
-	        that.$element[0].offsetWidth // force reflow
-	      }
-
-	      that.$element.addClass('in')
-
-	      that.enforceFocus()
-
-	      var e = $.Event('shown.bs.modal', { relatedTarget: _relatedTarget })
-
-	      transition ?
-	        that.$dialog // wait for modal to slide in
-	          .one('bsTransitionEnd', function () {
-	            that.$element.trigger('focus').trigger(e)
-	          })
-	          .emulateTransitionEnd(Modal.TRANSITION_DURATION) :
-	        that.$element.trigger('focus').trigger(e)
-	    })
-	  }
-
-	  Modal.prototype.hide = function (e) {
-	    if (e) e.preventDefault()
-
-	    e = $.Event('hide.bs.modal')
-
-	    this.$element.trigger(e)
-
-	    if (!this.isShown || e.isDefaultPrevented()) return
-
-	    this.isShown = false
-
-	    this.escape()
-	    this.resize()
-
-	    $(document).off('focusin.bs.modal')
-
-	    this.$element
-	      .removeClass('in')
-	      .off('click.dismiss.bs.modal')
-	      .off('mouseup.dismiss.bs.modal')
-
-	    this.$dialog.off('mousedown.dismiss.bs.modal')
-
-	    $.support.transition && this.$element.hasClass('fade') ?
-	      this.$element
-	        .one('bsTransitionEnd', $.proxy(this.hideModal, this))
-	        .emulateTransitionEnd(Modal.TRANSITION_DURATION) :
-	      this.hideModal()
-	  }
-
-	  Modal.prototype.enforceFocus = function () {
-	    $(document)
-	      .off('focusin.bs.modal') // guard against infinite focus loop
-	      .on('focusin.bs.modal', $.proxy(function (e) {
-	        if (this.$element[0] !== e.target && !this.$element.has(e.target).length) {
-	          this.$element.trigger('focus')
-	        }
-	      }, this))
-	  }
-
-	  Modal.prototype.escape = function () {
-	    if (this.isShown && this.options.keyboard) {
-	      this.$element.on('keydown.dismiss.bs.modal', $.proxy(function (e) {
-	        e.which == 27 && this.hide()
-	      }, this))
-	    } else if (!this.isShown) {
-	      this.$element.off('keydown.dismiss.bs.modal')
-	    }
-	  }
-
-	  Modal.prototype.resize = function () {
-	    if (this.isShown) {
-	      $(window).on('resize.bs.modal', $.proxy(this.handleUpdate, this))
-	    } else {
-	      $(window).off('resize.bs.modal')
-	    }
-	  }
-
-	  Modal.prototype.hideModal = function () {
-	    var that = this
-	    this.$element.hide()
-	    this.backdrop(function () {
-	      that.$body.removeClass('modal-open')
-	      that.resetAdjustments()
-	      that.resetScrollbar()
-	      that.$element.trigger('hidden.bs.modal')
-	    })
-	  }
-
-	  Modal.prototype.removeBackdrop = function () {
-	    this.$backdrop && this.$backdrop.remove()
-	    this.$backdrop = null
-	  }
-
-	  Modal.prototype.backdrop = function (callback) {
-	    var that = this
-	    var animate = this.$element.hasClass('fade') ? 'fade' : ''
-
-	    if (this.isShown && this.options.backdrop) {
-	      var doAnimate = $.support.transition && animate
-
-	      this.$backdrop = $(document.createElement('div'))
-	        .addClass('modal-backdrop ' + animate)
-	        .appendTo(this.$body)
-
-	      this.$element.on('click.dismiss.bs.modal', $.proxy(function (e) {
-	        if (this.ignoreBackdropClick) {
-	          this.ignoreBackdropClick = false
-	          return
-	        }
-	        if (e.target !== e.currentTarget) return
-	        this.options.backdrop == 'static'
-	          ? this.$element[0].focus()
-	          : this.hide()
-	      }, this))
-
-	      if (doAnimate) this.$backdrop[0].offsetWidth // force reflow
-
-	      this.$backdrop.addClass('in')
-
-	      if (!callback) return
-
-	      doAnimate ?
-	        this.$backdrop
-	          .one('bsTransitionEnd', callback)
-	          .emulateTransitionEnd(Modal.BACKDROP_TRANSITION_DURATION) :
-	        callback()
-
-	    } else if (!this.isShown && this.$backdrop) {
-	      this.$backdrop.removeClass('in')
-
-	      var callbackRemove = function () {
-	        that.removeBackdrop()
-	        callback && callback()
-	      }
-	      $.support.transition && this.$element.hasClass('fade') ?
-	        this.$backdrop
-	          .one('bsTransitionEnd', callbackRemove)
-	          .emulateTransitionEnd(Modal.BACKDROP_TRANSITION_DURATION) :
-	        callbackRemove()
-
-	    } else if (callback) {
-	      callback()
-	    }
-	  }
-
-	  // these following methods are used to handle overflowing modals
-
-	  Modal.prototype.handleUpdate = function () {
-	    this.adjustDialog()
-	  }
-
-	  Modal.prototype.adjustDialog = function () {
-	    var modalIsOverflowing = this.$element[0].scrollHeight > document.documentElement.clientHeight
-
-	    this.$element.css({
-	      paddingLeft:  !this.bodyIsOverflowing && modalIsOverflowing ? this.scrollbarWidth : '',
-	      paddingRight: this.bodyIsOverflowing && !modalIsOverflowing ? this.scrollbarWidth : ''
-	    })
-	  }
-
-	  Modal.prototype.resetAdjustments = function () {
-	    this.$element.css({
-	      paddingLeft: '',
-	      paddingRight: ''
-	    })
-	  }
-
-	  Modal.prototype.checkScrollbar = function () {
-	    var fullWindowWidth = window.innerWidth
-	    if (!fullWindowWidth) { // workaround for missing window.innerWidth in IE8
-	      var documentElementRect = document.documentElement.getBoundingClientRect()
-	      fullWindowWidth = documentElementRect.right - Math.abs(documentElementRect.left)
-	    }
-	    this.bodyIsOverflowing = document.body.clientWidth < fullWindowWidth
-	    this.scrollbarWidth = this.measureScrollbar()
-	  }
-
-	  Modal.prototype.setScrollbar = function () {
-	    var bodyPad = parseInt((this.$body.css('padding-right') || 0), 10)
-	    this.originalBodyPad = document.body.style.paddingRight || ''
-	    if (this.bodyIsOverflowing) this.$body.css('padding-right', bodyPad + this.scrollbarWidth)
-	  }
-
-	  Modal.prototype.resetScrollbar = function () {
-	    this.$body.css('padding-right', this.originalBodyPad)
-	  }
-
-	  Modal.prototype.measureScrollbar = function () { // thx walsh
-	    var scrollDiv = document.createElement('div')
-	    scrollDiv.className = 'modal-scrollbar-measure'
-	    this.$body.append(scrollDiv)
-	    var scrollbarWidth = scrollDiv.offsetWidth - scrollDiv.clientWidth
-	    this.$body[0].removeChild(scrollDiv)
-	    return scrollbarWidth
-	  }
-
-
-	  // MODAL PLUGIN DEFINITION
-	  // =======================
-
-	  function Plugin(option, _relatedTarget) {
-	    return this.each(function () {
-	      var $this   = $(this)
-	      var data    = $this.data('bs.modal')
-	      var options = $.extend({}, Modal.DEFAULTS, $this.data(), typeof option == 'object' && option)
-
-	      if (!data) $this.data('bs.modal', (data = new Modal(this, options)))
-	      if (typeof option == 'string') data[option](_relatedTarget)
-	      else if (options.show) data.show(_relatedTarget)
-	    })
-	  }
-
-	  var old = $.fn.modal
-
-	  $.fn.modal             = Plugin
-	  $.fn.modal.Constructor = Modal
-
-
-	  // MODAL NO CONFLICT
-	  // =================
-
-	  $.fn.modal.noConflict = function () {
-	    $.fn.modal = old
-	    return this
-	  }
-
-
-	  // MODAL DATA-API
-	  // ==============
-
-	  $(document).on('click.bs.modal.data-api', '[data-toggle="modal"]', function (e) {
-	    var $this   = $(this)
-	    var href    = $this.attr('href')
-	    var $target = $($this.attr('data-target') || (href && href.replace(/.*(?=#[^\s]+$)/, ''))) // strip for ie7
-	    var option  = $target.data('bs.modal') ? 'toggle' : $.extend({ remote: !/#/.test(href) && href }, $target.data(), $this.data())
-
-	    if ($this.is('a')) e.preventDefault()
-
-	    $target.one('show.bs.modal', function (showEvent) {
-	      if (showEvent.isDefaultPrevented()) return // only register focus restorer if modal will actually get shown
-	      $target.one('hidden.bs.modal', function () {
-	        $this.is(':visible') && $this.trigger('focus')
-	      })
-	    })
-	    Plugin.call($target, option, this)
-	  })
-
-	}(jQuery);
-
-
-/***/ },
-/* 40 */
-/***/ function(module, exports, __webpack_require__) {
-
-	__webpack_require__(41);
-
-	var twig = __webpack_require__(25).twig,
-	    template = twig({id:"E:\\Projects\\ConcertoCmsStandardEdition\\vendor\\concerto-cms\\admin-bundle\\src\\Resources\\twigjs\\pages-newPageDialog.html.twig", data:[{"type":"logic","token":{"type":"Twig.logic.type.extends","stack":[{"type":"Twig.expression.type.string","value":"E:\\Projects\\ConcertoCmsStandardEdition\\vendor\\concerto-cms\\admin-bundle\\src\\Resources\\twigjs\\layout-modal.html.twig"}]}},{"type":"raw","value":"\r\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"title","output":[{"type":"raw","value":"Add a page"}]}},{"type":"raw","value":"\r\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"body","output":[{"type":"raw","value":"\r\n    <div class=\"form-group\">\r\n        <label for=\"frmNewPage_title\">Title</label>\r\n        <input type=\"text\" class=\"form-control\" id=\"frmNewPage_title\" placeholder=\"Page title\" name=\"title\" required />\r\n    </div>\r\n    <div class=\"form-group\">\r\n        <label for=\"frmNewPage_slug\">Url</label>\r\n        <select class=\"form-control\" name=\"parent\">\r\n            "},{"type":"logic","token":{"type":"Twig.logic.type.for","key_var":null,"value_var":"page","expression":[{"type":"Twig.expression.type.variable","value":"pages","match":["pages"]}],"output":[{"type":"raw","value":"\r\n            <option>"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"page","match":["page"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"id"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"</option>\r\n            "}]}},{"type":"raw","value":"\r\n        </select> / <input type=\"text\" class=\"form-control\" id=\"frmNewPage_slug\" placeholder=\"Page title\" name=\"slug\" required />\r\n    </div>\r\n    "},{"type":"logic","token":{"type":"Twig.logic.type.if","stack":[{"type":"Twig.expression.type.variable","value":"types","match":["types"]},{"type":"Twig.expression.type.filter","value":"length","match":["|length","length"]},{"type":"Twig.expression.type.number","value":1,"match":["1",null]},{"type":"Twig.expression.type.operator.binary","value":">","precidence":8,"associativity":"leftToRight","operator":">"}],"output":[{"type":"raw","value":"\r\n    <div class=\"form-group\">\r\n        <label>Page type</label>\r\n        <div class=\"list-group page-types\">\r\n            "},{"type":"logic","token":{"type":"Twig.logic.type.for","key_var":null,"value_var":"type","expression":[{"type":"Twig.expression.type.variable","value":"types","match":["types"]}],"output":[{"type":"raw","value":"\r\n                <a href=\"#\" class=\"list-group-item\" data-type=\""},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"type","match":["type"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"id"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"\">\r\n                    <h4 class=\"list-group-item-heading\">"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"type","match":["type"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"title"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"</h4>\r\n                    <p class=\"list-group-item-text\">"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"type","match":["type"]},{"type":"Twig.expression.type.key.period","key":"get","params":[{"type":"Twig.expression.type.parameter.start","value":"(","match":["("]},{"type":"Twig.expression.type.string","value":"description"},{"type":"Twig.expression.type.parameter.end","value":")","match":[")"],"expression":false}]}]},{"type":"raw","value":"</p>\r\n                </a>\r\n            "}]}},{"type":"raw","value":"\r\n        </div>\r\n    </div>\r\n    "}]}},{"type":"raw","value":"\r\n\r\n"}]}},{"type":"raw","value":"\r\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"footer","output":[{"type":"raw","value":"\r\n    <button type=\"submit\" class=\"btn btn-lg btn-success\">Create</button>\r\n"}]}}], allowInlineIncludes: true});
-
-	module.exports = function(context) { return template.render(context); }
-
-/***/ },
-/* 41 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var twig = __webpack_require__(25).twig,
-	    template = twig({id:"E:\\Projects\\ConcertoCmsStandardEdition\\vendor\\concerto-cms\\admin-bundle\\src\\Resources\\twigjs\\layout-modal.html.twig", data:[{"type":"raw","value":"<div class=\"modal-dialog\">\n    <div class=\"modal-content\">\n        <form>\n            <div class=\"modal-header\">\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\n                <h4 class=\"modal-title\">"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"title","output":[]}},{"type":"raw","value":"</h4>\n            </div>\n            <div class=\"modal-body\">\n                "},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"body","output":[]}},{"type":"raw","value":"            </div>\n            <div class=\"modal-footer\">\n                "},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"footer","output":[]}},{"type":"raw","value":"            </div>\n        </form>\n    </div><!-- /.modal-content -->\n</div><!-- /.modal-dialog -->\n"}], allowInlineIncludes: true});
-
-	module.exports = function(context) { return template.render(context); }
-
-/***/ },
-/* 42 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Marionette = __webpack_require__(8);
-	__webpack_require__(39);
-
-	module.exports = Marionette.Behavior.extend({
-	    initialize: function() {
-	        this.$el
-	            .addClass("modal fade")
-	            .attr({
-	                tabindex: "-1",
-	                role: "dialog"
-	            });
-	    },
-	    onShow: function() {
-	        this.view.render();
-	        this.$el.appendTo(document.body);
-	        this.$el.modal(this.options.modalOptions);
-	    },
-	    onHide: function() {
-	        this.$el.modal('hide');
-	    },
-	    defaults: {
-	        modalOptions: {}
-	    },
-	    events: {
-	        'hidden.bs.modal': 'onHidden'
-	    },
-	    onHidden: function() {
-	        this.view.triggerMethod("close");
-	        this.view.destroy();
-	    }
-	});
-
-/***/ },
-/* 43 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Marionette = __webpack_require__(8);
-
-	var Router = Marionette.AppRouter.extend({
-	    // "someMethod" must exist at controller.someMethod
-	    appRoutes: {
-	        "": "index",
-	        "list/:lang": "list",
-	        "edit/*path": "edit"
-	    }
-	});
-	module.exports = Router;
-
-/***/ },
-/* 44 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Marionette = __webpack_require__(8);
-
-	module.exports = Marionette.ItemView.extend({
-	    tagName: "form",
-	    template: __webpack_require__(45),
-	    initialize: function(options) {
-	        this.originalModel = options.model;
-	        this.model = options.model.clone();
-	        _.extend(this, options);
-	    },
-	    onAttach: function() {
-	        var editor;
-	        editor = this.$("[name=content]").ckeditor({
-	            customConfig: ''
-	        }).data("ckeditorInstance");
-	        editor.on( 'change', _.bind(function(e) {
-	            this.$("[name=content]").trigger("change");
-	        }, this));
-
-	        this.stickit();
-	    },
-	    onRender: function() {
-
-	    },
-	    events: {
-	        "submit": "onSubmit"
-	    },
-	    bindings: {
-	        "[name=title]": "title",
-	        "[name=content]": "content",
-	        "[name=meta_description]": "meta_description"
-	    },
-	    onSubmit: function(e) {
-	        e.preventDefault();
-	        this.save();
-	    },
-	    save: function() {
-	        this.originalModel.set(this.model.attributes);
-	        this.trigger("save");
-	    }
-	});
-
-
-/***/ },
-/* 45 */
-/***/ function(module, exports, __webpack_require__) {
-
-	__webpack_require__(31);
-
-	var twig = __webpack_require__(25).twig,
-	    template = twig({id:"E:\\Projects\\ConcertoCmsStandardEdition\\vendor\\concerto-cms\\admin-bundle\\src\\Resources\\twigjs\\pages-simplePageView.html.twig", data:[{"type":"logic","token":{"type":"Twig.logic.type.extends","stack":[{"type":"Twig.expression.type.string","value":"E:\\Projects\\ConcertoCmsStandardEdition\\vendor\\concerto-cms\\admin-bundle\\src\\Resources\\twigjs\\layout-page.html.twig"}]}},{"type":"raw","value":"\r\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"title","output":[{"type":"raw","value":"Pages <small>"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"title","match":["title"]}]},{"type":"raw","value":"</small>"}]}},{"type":"raw","value":"\r\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"breadcrumb","output":[{"type":"raw","value":"<a href=\"#list/"},{"type":"output","stack":[{"type":"Twig.expression.type.variable","value":"language","match":["language"]}]},{"type":"raw","value":"\">&lt; Back to overview</a>"}]}},{"type":"raw","value":"\r\n\r\n"},{"type":"logic","token":{"type":"Twig.logic.type.block","block":"body","output":[{"type":"raw","value":"\r\n<div class=\"container\">\r\n    <div class=\"form-group\">\r\n        <label for=\"frmSimplePage_title\">Title</label>\r\n        <input type=\"text\" name=\"title\" class=\"form-control\" id=\"frmSimplePage_title\" placeholder=\"Page title\">\r\n    </div>\r\n    <div class=\"form-group\">\r\n        <label for=\"frmSimplePage_meta_description\">Meta description</label>\r\n        <input type=\"text\" name=\"meta_description\" class=\"form-control\" id=\"frmSimplePage_meta_description\" placeholder=\"Meta description\">\r\n    </div>\r\n    <div class=\"form-group\">\r\n        <label for=\"frmSimplePage_content\">Content</label>\r\n        <textarea id=\"frmSimplePage_content\" name=\"content\" class=\"form-control\"></textarea>\r\n    </div>\r\n</div>\r\n    <hr />\r\n    <div class=\"container\">\r\n        <button type=\"submit\" class=\"btn btn-success btn-lg pull-right\"><i class=\"glyphicon glyphicon-ok\"></i> Save</button>\r\n    </div>\r\n"}]}}], allowInlineIncludes: true});
 
 	module.exports = function(context) { return template.render(context); }
 
