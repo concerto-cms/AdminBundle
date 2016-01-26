@@ -1,17 +1,21 @@
-var Pages = Pages || {};
-Pages.NewPageDialog = Backbone.View.extend({
-    className: "modal fade",
+var Marionette = require("backbone.marionette"),
+    _ = require("underscore");
+
+require("bootstrap/js/modal");
+module.exports = Marionette.ItemView.extend({
+    template: require("pages-newPageDialog.html.twig"),
     initialize: function(options) {
         _.extend(this, options);
-        this.$el.appendTo(document.body);
         this.listenTo(this.model, "change:type", this.setActiveType);
     },
-    render: function() {
-        var content = window.JST["pages-newPageDialog.html.twig"].render(this);
-        this.$el.html(content);
+    behaviors: {
+        DialogBehavior: {
+            behaviorClass: require("../Utils/DialogBehavior")
+        }
+    },
+    onRender: function() {
         this.setActiveType();
         this.stickit();
-        return this;
     },
     bindings: {
         '[name=slug]': 'slug',
@@ -19,18 +23,8 @@ Pages.NewPageDialog = Backbone.View.extend({
         '[name=parent]': 'parent'
     },
     events: {
-        'hidden.bs.modal': 'onClose',
         'click .page-types a': 'onClickPagetype',
         'submit form': 'onSubmit'
-    },
-    open: function() {
-        this.$el.modal("show");
-    },
-    close: function() {
-        this.$el.modal("hide");
-    },
-    onClose: function() {
-        this.trigger("close");
     },
     onClickPagetype: function(e) {
         var type = $(e.currentTarget).data("type");
@@ -62,6 +56,7 @@ Pages.NewPageDialog = Backbone.View.extend({
         })
         .done(function(data) {
             that.model.set(data);
+            that.triggerMethod("hide");
             that.trigger("save", that.model);
         });
 

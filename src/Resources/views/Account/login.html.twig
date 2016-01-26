@@ -42,13 +42,8 @@
 {% endblock %}
 {% block javascript %}
     {% javascripts
-    '@ConcertoCmsAdminBundle/Resources/js/Login/*.js'
+    '@ConcertoCmsAdminBundle/Resources/public/js/login.js'
     %}
     <script src="{{ asset_url }}"></script>
     {% endjavascripts %}
-
-    <script>
-        controller = new Login.Controller();
-    </script>
-
 {% endblock %}

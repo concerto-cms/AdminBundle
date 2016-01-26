@@ -1,11 +1,17 @@
-var Navigation = Navigation || {};
-Navigation.ListView = Backbone.View.extend({
+var Backbone = require("backbone"),
+    EditView = require("./EditView"),
+    _ = require("underscore"),
+    $ = require("jquery"),
+    Menu = require("../Model/Menu"),
+    tpl = require("navigation-listView.html.twig");
+
+module.exports = Backbone.View.extend({
     initialize: function(options) {
         _.extend(this, options);
     },
     render: function() {
         var menu = this.collection.getMenu(this.menu, this.language),
-            content = window.JST["navigation-listView.html.twig"].render({
+            content = tpl({
             menu: this.collection.get(this.menu),   // main-menu
             languages: this.languages.toJSON(),
             lang: this.language,
@@ -22,7 +28,7 @@ Navigation.ListView = Backbone.View.extend({
             collection = this.collection,
             model = collection.get(id),
             view;
-        view = new Navigation.EditView({
+        view = new EditView({
             model: model,
             pages: this.pages.getByLanguage(this.language),
             listEl: e.currentTarget
@@ -45,10 +51,10 @@ Navigation.ListView = Backbone.View.extend({
             model,
             view,
             that = this;
-        model = new Model.Menu({
+        model = new Menu({
             parent: parent
         });
-        view = new Navigation.EditView({
+        view = new EditView({
             model: model,
             pages: this.pages.getByLanguage(this.language)
         });

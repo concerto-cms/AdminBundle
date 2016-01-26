@@ -18,11 +18,15 @@
   "license": "GPL",
   "readmeFilename": "README.md",
   "dependencies": {
+    "expose-loader": "^0.7.1",
     "grunt": "^0.4.5",
-    "grunt-contrib-concat": "^0.5.0",
-    "grunt-contrib-copy": "^0.7.0",
+    "grunt-contrib-copy": "^0.8.2",
     "grunt-contrib-less": "^1.0.0",
     "grunt-contrib-watch": "^0.6.1",
-    "grunt-twig": "^0.1.3"
+    "imports-loader": "^0.6.5",
+    "twig": "^0.8.2",
+    "twig-loader": "^0.2.0",
+    "webpack": "^1.12.1",
+    "webpack-dev-server": "^1.10.1"
   }
 }

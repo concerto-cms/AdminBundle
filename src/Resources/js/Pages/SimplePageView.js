@@ -1,16 +1,15 @@
-var Pages = Pages || {};
-Pages.SimplePageView = Backbone.View.extend({
+var Marionette = require("backbone.marionette");
+
+module.exports = Marionette.ItemView.extend({
     tagName: "form",
+    template: require("pages-simplePageView.html.twig"),
     initialize: function(options) {
         this.originalModel = options.model;
         this.model = options.model.clone();
         _.extend(this, options);
     },
-    render: function() {
-        var content = window.JST["pages-simplePageView.html.twig"].render(this),
-            editor;
-        this.$el.html(content);
-
+    onAttach: function() {
+        var editor;
         editor = this.$("[name=content]").ckeditor({
             customConfig: ''
         }).data("ckeditorInstance");
@@ -19,6 +18,9 @@ Pages.SimplePageView = Backbone.View.extend({
         }, this));
 
         this.stickit();
+    },
+    onRender: function() {
+
     },
     events: {
         "submit": "onSubmit"
